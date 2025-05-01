@@ -13,7 +13,11 @@ class TestAssetAllocation(unittest.TestCase):
         cash = CashHolding(1000.0)
         self.assertEqual(cash.name, "Cash")
         self.assertEqual(cash.value, 1000.0)
+        self.assertEqual(cash.target_value, None)
         self.assertEqual(cash.children, [])
+
+        cash_with_target = CashHolding(1000.0, target_value=2000.0)
+        self.assertEqual(cash_with_target.target_value, 2000.0)
 
     @patch('yfinance.Ticker')
     def test_ticker_holding(self, mock_ticker_class):
@@ -42,10 +46,17 @@ class TestAssetAllocation(unittest.TestCase):
         cash = CashHolding(1000.0)
         
         # Create an asset class
-        group = AssetClass("Equity", [cash])
+        group = AssetClass("Equity", [cash], target_allocation=60)
         self.assertEqual(group.name, "Equity")
         self.assertEqual(group.value, 1000.0)
+        self.assertEqual(group.target_allocation, 60)
         self.assertEqual(len(group.children), 1)
+
+        # Test invalid target allocations
+        with self.assertRaises(ValueError):
+            AssetClass("Invalid", [cash], target_allocation=-10)
+        with self.assertRaises(ValueError):
+            AssetClass("Invalid", [cash], target_allocation=110)
 
     def test_nested_groups(self):
         # Create a nested structure
@@ -53,12 +64,14 @@ class TestAssetAllocation(unittest.TestCase):
         bonds = CashHolding(2000.0)
         
         # Create nested groups
-        fixed_income = AssetClass("Fixed Income", [bonds])
-        portfolio = AssetClass("Portfolio", [cash, fixed_income])
+        fixed_income = AssetClass("Fixed Income", [bonds], target_allocation=40)
+        portfolio = AssetClass("Portfolio", [cash, fixed_income], target_allocation=100)
         
         self.assertEqual(portfolio.value, 3000.0)  # Sum of all holdings
         self.assertEqual(fixed_income.value, 2000.0)
         self.assertEqual(len(portfolio.children), 2)
+        self.assertEqual(portfolio.target_allocation, 100)
+        self.assertEqual(fixed_income.target_allocation, 40)
 
 if __name__ == '__main__':
     unittest.main() 
