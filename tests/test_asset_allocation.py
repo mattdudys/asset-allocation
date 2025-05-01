@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock, patch
 import yfinance
-from asset_allocation import Graph, Node, LeafNode, InternalNode, HoldingGroup, CashHolding, TickerHolding
+from asset_allocation import Graph, Node, LeafNode, InternalNode, AssetClass, CashHolding, TickerHolding
 
 class TestAssetAllocation(unittest.TestCase):
     def setUp(self):
@@ -41,9 +41,9 @@ class TestAssetAllocation(unittest.TestCase):
         # Create some holdings
         cash = CashHolding(1000.0)
         
-        # Create a holding group
-        group = HoldingGroup("Asset Class", [cash])
-        self.assertEqual(group.name, "Asset Class")
+        # Create an asset class
+        group = AssetClass("Equity", [cash])
+        self.assertEqual(group.name, "Equity")
         self.assertEqual(group.value, 1000.0)
         self.assertEqual(len(group.children), 1)
 
@@ -53,8 +53,8 @@ class TestAssetAllocation(unittest.TestCase):
         bonds = CashHolding(2000.0)
         
         # Create nested groups
-        fixed_income = HoldingGroup("Fixed Income", [bonds])
-        portfolio = HoldingGroup("Portfolio", [cash, fixed_income])
+        fixed_income = AssetClass("Fixed Income", [bonds])
+        portfolio = AssetClass("Portfolio", [cash, fixed_income])
         
         self.assertEqual(portfolio.value, 3000.0)  # Sum of all holdings
         self.assertEqual(fixed_income.value, 2000.0)

@@ -1,8 +1,14 @@
 import yfinance
-from .graph import LeafNode, InternalNode
+from .graph import LeafNode, InternalNode, Node
 
-class HoldingGroup(InternalNode):
-    """A group of holdings or a group of groups in a portfolio. These may be asset classes, sectors, or regions."""
+class Portfolio(InternalNode):
+    """A portfolio of holdings."""
+
+    def __init__(self, name: str, children: list[Node]):
+        super().__init__(name, children)
+
+class AssetClass(InternalNode):
+    """A group of holdings or a group of asset classes in a portfolio."""
     def __init__(self, name: str, children: list[Node]):
         super().__init__(name, children)
 
