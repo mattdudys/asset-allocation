@@ -6,11 +6,11 @@ class Portfolio:
     cash_value: float
     cash_target: float | None
 
-    def __init__(self, children: list[Union['AssetClass', 'AssetClassCategory']], cash_value: float = 0.0, cash_target: float | None = None):
-        self.children = children
+    def __init__(self, cash_value: float = 0.0, cash_target: float | None = None, children: list[Union['AssetClass', 'AssetClassCategory']] = None):
+        self.children = children or []
         self.cash_value = cash_value
         self.cash_target = cash_target
-        if children:  # Only validate if there are children
+        if self.children:  # Only validate if there are children
             self._validate_target_weights()
 
     def _validate_target_weights(self):
@@ -78,18 +78,18 @@ class AssetClass:
     """
     name: str
     target_weight: float
-    children: list['Holding']
+    holdings: list['Holding']
 
-    def __init__(self, name: str, children: list['Holding'], target_weight: float):
+    def __init__(self, name: str, target_weight: float, holdings: list['Holding']):
         if not 0.0 <= target_weight <= 1.0:
             raise ValueError("target_weight must be between 0.0 and 1.0")
         self.name = name
-        self.children = children
         self.target_weight = target_weight
+        self.holdings = holdings
 
     @property
     def value(self):
-        return sum(child.value for child in self.children)
+        return sum(holding.value for holding in self.holdings)
 
     def actual_weight(self, total_portfolio_value: float) -> float:
         """Calculate the actual weight of this asset class in the portfolio.
