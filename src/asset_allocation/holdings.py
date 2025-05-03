@@ -136,6 +136,18 @@ class AssetClass:
             return 0
         return self.holdings[0].buy(budget)
 
+    def sell(self) -> float:
+        """Sell one share of this asset class's least preferred holding, or a fractional share if less than one share.
+        
+        Returns:
+            The proceeds of the sale, if any.
+        """
+        for holding in reversed(self.holdings):
+            proceeds = holding.sell()
+            if proceeds > 0:
+                return proceeds
+        return 0
+
 class Holding:
     """A holding in a portfolio which a ticker symbol and number of shares."""
     ticker: str

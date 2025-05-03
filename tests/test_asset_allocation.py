@@ -174,6 +174,46 @@ class TestAssetClass(unittest.TestCase):
         self.assertEqual(holding1.shares, 11)  # First holding should be bought
         self.assertEqual(holding2.shares, 10)  # Second holding should be unchanged
 
+    def test_asset_class_sell_from_last_holding(self):
+        holding1 = Holding("AAPL", 10, price=100.0)
+        holding2 = Holding("MSFT", 10, price=100.0)
+        asset_class = AssetClass("Tech", target_weight=0.6, holdings=[holding1, holding2])
+        
+        proceeds = asset_class.sell()
+        self.assertEqual(proceeds, 100.0)  # One share of MSFT at $100
+        self.assertEqual(holding1.shares, 10)  # First holding unchanged
+        self.assertEqual(holding2.shares, 9)   # Second holding reduced by 1
+
+    def test_asset_class_sell_from_last_holding_fractional(self):
+        holding1 = Holding("AAPL", 10, price=100.0)
+        holding2 = Holding("MSFT", 0.5, price=100.0)
+        asset_class = AssetClass("Tech", target_weight=0.6, holdings=[holding1, holding2])
+        
+        proceeds = asset_class.sell()
+        self.assertEqual(proceeds, 50.0)  # 0.5 shares of MSFT at $100
+        self.assertEqual(holding1.shares, 10)  # First holding unchanged
+        self.assertEqual(holding2.shares, 0)   # Second holding reduced to 0
+
+    def test_asset_class_sell_from_second_last_when_last_empty(self):
+        holding1 = Holding("AAPL", 10, price=100.0)
+        holding2 = Holding("MSFT", 0, price=100.0)
+        asset_class = AssetClass("Tech", target_weight=0.6, holdings=[holding1, holding2])
+        
+        proceeds = asset_class.sell()
+        self.assertEqual(proceeds, 100.0)  # One share of AAPL at $100
+        self.assertEqual(holding1.shares, 9)  # First holding reduced by 1
+        self.assertEqual(holding2.shares, 0)  # Second holding unchanged
+
+    def test_asset_class_sell_returns_zero_when_all_empty(self):
+        holding1 = Holding("AAPL", 0, price=100.0)
+        holding2 = Holding("MSFT", 0, price=100.0)
+        asset_class = AssetClass("Tech", target_weight=0.6, holdings=[holding1, holding2])
+        
+        proceeds = asset_class.sell()
+        self.assertEqual(proceeds, 0.0)  # No shares to sell
+        self.assertEqual(holding1.shares, 0)  # First holding unchanged
+        self.assertEqual(holding2.shares, 0)  # Second holding unchanged
+
     def test_asset_class_with_multiple_holdings(self):
         holding1 = Holding("AAPL", 10, price=100.0)
         holding2 = Holding("MSFT", 10, price=100.0)
