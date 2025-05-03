@@ -82,15 +82,15 @@ class TestAssetClass(unittest.TestCase):
     def test_asset_class_buy_with_sufficient_budget(self):
         holding = Holding("AAPL", 10, price=100.0)
         asset_class = AssetClass("US Equity", target_weight=0.4, holdings=[holding])
-        spent = asset_class.buy(150.0, 2500.0)
-        self.assertEqual(spent, 100.0)
+        transaction = asset_class.buy(150.0, 2500.0)
+        self.assertIsNotNone(transaction)
         self.assertEqual(holding.shares, 11)
 
     def test_asset_class_buy_with_insufficient_budget(self):
         holding = Holding("AAPL", 10, price=100.0)
         asset_class = AssetClass("US Equity", target_weight=0.4, holdings=[holding])
-        spent = asset_class.buy(50.0, 2500.0)
-        self.assertEqual(spent, 0.0)
+        transaction = asset_class.buy(50.0, 2500.0)
+        self.assertIsNone(transaction)
         self.assertEqual(holding.shares, 10)
 
     def test_asset_class_buy_with_multiple_holdings(self):
@@ -98,8 +98,8 @@ class TestAssetClass(unittest.TestCase):
         holding2 = Holding("MSFT", 10, price=100.0)
         asset_class = AssetClass("Tech", target_weight=0.6, holdings=[holding1, holding2])
         
-        spent = asset_class.buy(150.0, 2500.0)
-        self.assertEqual(spent, 100.0)
+        transaction = asset_class.buy(150.0, 2500.0)
+        self.assertIsNotNone(transaction)
         self.assertEqual(holding1.shares, 11)  # First holding should be bought
         self.assertEqual(holding2.shares, 10)  # Second holding should be unchanged
 
@@ -108,8 +108,8 @@ class TestAssetClass(unittest.TestCase):
         holding2 = Holding("MSFT", 10, price=100.0)
         asset_class = AssetClass("Tech", target_weight=0.6, holdings=[holding1, holding2])
         
-        proceeds = asset_class.sell()
-        self.assertEqual(proceeds, 100.0)  # One share of MSFT at $100
+        transaction = asset_class.sell()
+        self.assertIsNotNone(transaction)
         self.assertEqual(holding1.shares, 10)  # First holding unchanged
         self.assertEqual(holding2.shares, 9)   # Second holding reduced by 1
 
@@ -118,8 +118,8 @@ class TestAssetClass(unittest.TestCase):
         holding2 = Holding("MSFT", 0.5, price=100.0)
         asset_class = AssetClass("Tech", target_weight=0.6, holdings=[holding1, holding2])
         
-        proceeds = asset_class.sell()
-        self.assertEqual(proceeds, 50.0)  # 0.5 shares of MSFT at $100
+        transaction = asset_class.sell()
+        self.assertIsNotNone(transaction)
         self.assertEqual(holding1.shares, 10)  # First holding unchanged
         self.assertEqual(holding2.shares, 0)   # Second holding reduced to 0
 
@@ -128,8 +128,8 @@ class TestAssetClass(unittest.TestCase):
         holding2 = Holding("MSFT", 0, price=100.0)
         asset_class = AssetClass("Tech", target_weight=0.6, holdings=[holding1, holding2])
         
-        proceeds = asset_class.sell()
-        self.assertEqual(proceeds, 100.0)  # One share of AAPL at $100
+        transaction = asset_class.sell()
+        self.assertIsNotNone(transaction)
         self.assertEqual(holding1.shares, 9)  # First holding reduced by 1
         self.assertEqual(holding2.shares, 0)  # Second holding unchanged
 
@@ -138,8 +138,8 @@ class TestAssetClass(unittest.TestCase):
         holding2 = Holding("MSFT", 0, price=100.0)
         asset_class = AssetClass("Tech", target_weight=0.6, holdings=[holding1, holding2])
         
-        proceeds = asset_class.sell()
-        self.assertEqual(proceeds, 0.0)  # No shares to sell
+        transaction = asset_class.sell()
+        self.assertIsNone(transaction)
         self.assertEqual(holding1.shares, 0)  # First holding unchanged
         self.assertEqual(holding2.shares, 0)  # Second holding unchanged
 
@@ -273,8 +273,8 @@ class TestAssetClassCategory(unittest.TestCase):
         category = AssetClassCategory("Equity", [us_equity, intl_equity])
         
         # US Equity is overweight (0.4/0.4 = 1.0), Intl Equity is overweight (0.4/0.2 = 2.0)
-        proceeds = category.sell(2000.0)
-        self.assertEqual(proceeds, 100.0)  # Should sell from MSFT (most overweight)
+        transaction = category.sell(2000.0)
+        self.assertIsNotNone(transaction)
         self.assertEqual(holding1.shares, 10)  # AAPL unchanged
         self.assertEqual(holding2.shares, 9)   # MSFT reduced by 1
 
@@ -287,8 +287,8 @@ class TestAssetClassCategory(unittest.TestCase):
         category = AssetClassCategory("Equity", [us_equity, intl_equity])
         
         # US Equity is overweight (0.4/0.4 = 1.0), Intl Equity is empty
-        proceeds = category.sell(1000.0)
-        self.assertEqual(proceeds, 100.0)  # Should sell from AAPL (second most overweight)
+        transaction = category.sell(1000.0)
+        self.assertIsNotNone(transaction)
         self.assertEqual(holding1.shares, 9)  # AAPL reduced by 1
         self.assertEqual(holding2.shares, 0)  # MSFT unchanged
 
@@ -299,7 +299,7 @@ class TestAssetClassCategory(unittest.TestCase):
         intl_equity = AssetClass("International Equity", target_weight=0.2, holdings=[holding2])
         category = AssetClassCategory("Equity", [us_equity, intl_equity])
         
-        proceeds = category.sell(1000.0)  # Using a positive portfolio value
-        self.assertEqual(proceeds, 0.0)  # No shares to sell
+        transaction = category.sell(1000.0)  # Using a positive portfolio value
+        self.assertIsNone(transaction)
         self.assertEqual(holding1.shares, 0)  # AAPL unchanged
         self.assertEqual(holding2.shares, 0)  # MSFT unchanged 

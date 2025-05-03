@@ -1,3 +1,5 @@
+from typing import Optional
+from asset_allocation.transaction import BuySell, Transaction
 from .quote_service import QuoteService
 
 class Holding:
@@ -36,27 +38,39 @@ class Holding:
     def value(self):
         return self.shares * self.price
 
-    def buy(self, budget: float) -> float:
+    def buy(self, budget: float) -> Optional[Transaction]:
         """Buy one share of this holding if there is enough budget.
         
         Args:
             budget: the amount of money to spend
         Returns: 
-            The amount of money spent or 0 if there is not enough budget
+            A Transaction if there was enough budget, otherwise None
         """
         if budget < self.price:
-            return 0
+            return None
         self.shares += 1
-        return self.price
+        return Transaction(
+            type=BuySell.BUY,
+            ticker=self.ticker,
+            shares=1,
+            price=self.price,
+            amount=self.price,
+        )
     
-    def sell(self) -> float:
+    def sell(self) -> Optional[Transaction]:
         """Sell one share of this holding, or a fractional share if less than one share.
         
         Returns:
-            The proceeds of the sale, if any.
+            A Transaction if there was a share to sell, otherwise None
         """
         to_sell = min(self.shares, 1.0)
         if to_sell <= 0:
-            return 0
+            return None
         self.shares -= to_sell
-        return to_sell * self.price 
+        return Transaction(
+            type=BuySell.SELL,
+            ticker=self.ticker,
+            shares=to_sell,
+            price=self.price,
+            amount=to_sell * self.price,
+        )

@@ -1,4 +1,6 @@
-from typing import Union
+from typing import Optional, Union
+
+from asset_allocation.transaction import Transaction
 from .holding import Holding
 
 class AssetClassCategory:
@@ -48,38 +50,38 @@ class AssetClassCategory:
             raise ValueError("total_portfolio_value must be positive")
         return (self.actual_weight(total_portfolio_value) / self.target_weight) - 1
 
-    def buy(self, budget: float, total_portfolio_value: float) -> float:
+    def buy(self, budget: float, total_portfolio_value: float) -> Optional[Transaction]:
         """Identifies the most underweight child asset class and attempts to buy one share of an underlying holding.
 
         Args:
             budget: the amount of money to spend
             total_portfolio_value: the investable, non-cash value of the portfolio
         Returns:
-            The amount of money spent or 0 if there is not enough budget
+            A Transaction if there was enough budget, otherwise None
         """
         # Create a copy of the children list and sort it by fractional deviation ascending.
         children = sorted(self.children, key=lambda x: x.fractional_deviation(total_portfolio_value))
         for child in children:
-            spent = child.buy(budget, total_portfolio_value)
-            if spent > 0:
-                return spent
-        return 0
+            transaction = child.buy(budget, total_portfolio_value)
+            if transaction:
+                return transaction
+        return None
     
-    def sell(self, total_portfolio_value: float) -> float:
+    def sell(self, total_portfolio_value: float) -> Optional[Transaction]:
         """Identifies the most overweight child asset class and attempts to sell one share of an underlying holding.
 
         Args:
             total_portfolio_value: the investable, non-cash value of the portfolio
         Returns:
-            The amount of money received or 0 if there is nothing to sell
+            A Transaction if there was a share to sell, otherwise None
         """
         # Create a copy of the children list and sort it by fractional deviation descending.
         children = sorted(self.children, key=lambda x: x.fractional_deviation(total_portfolio_value), reverse=True)
         for child in children:
-            proceeds = child.sell()
-            if proceeds > 0:
-                return proceeds
-        return 0
+            transaction = child.sell()
+            if transaction:
+                return transaction
+        return None
 
 class AssetClass:
     """A group of holdings in a portfolio.
@@ -134,7 +136,7 @@ class AssetClass:
             raise ValueError("total_portfolio_value must be positive")
         return (self.actual_weight(total_portfolio_value) / self.target_weight) - 1
 
-    def buy(self, budget: float, total_portfolio_value: float) -> float:
+    def buy(self, budget: float, total_portfolio_value: float) -> Optional[Transaction]:
         """Buy one share of this asset class's preferred holding if there is enough budget.
         
         Args:
@@ -142,18 +144,18 @@ class AssetClass:
             total_portfolio_value: the investable, non-cash value of the portfolio
             
         Returns:
-            The amount of money spent or 0 if there is not enough budget
+            A Transaction if there was enough budget, otherwise None
         """
         return self.holdings[0].buy(budget)
 
-    def sell(self) -> float:
+    def sell(self) -> Optional[Transaction]:
         """Sell one share of this asset class's least preferred holding, or a fractional share if less than one share.
         
         Returns:
-            The proceeds of the sale, if any.
+            A Transaction if there was a share to sell, otherwise None
         """
         for holding in reversed(self.holdings):
-            proceeds = holding.sell()
-            if proceeds > 0:
-                return proceeds
-        return 0 
+            transaction = holding.sell()
+            if transaction:
+                return transaction
+        return None
