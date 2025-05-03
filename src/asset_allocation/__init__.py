@@ -3,7 +3,7 @@ Asset Allocation package for managing investment portfolios.
 """
 
 from .graph import Graph, Node, LeafNode, InternalNode
-from .holdings import AssetClass, Portfolio, TickerHolding
+from .holdings import AssetClass, Portfolio, Holding
 from .quote_service import QuoteService, YFinanceQuoteService, FakeQuoteService
 
 __all__ = [
@@ -13,7 +13,7 @@ __all__ = [
     'InternalNode',
     'AssetClass',
     'Portfolio',
-    'TickerHolding',
+    'Holding',
     'QuoteService',
     'YFinanceQuoteService',
     'FakeQuoteService',

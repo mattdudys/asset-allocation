@@ -22,7 +22,7 @@ class AssetClass(InternalNode):
         super().__init__(name, children)
         self.target_allocation = target_allocation
 
-class TickerHolding(LeafNode):
+class Holding(LeafNode):
     """A holding in a portfolio which a ticker symbol and number of shares."""
     ticker: str
     shares: float

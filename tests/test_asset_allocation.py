@@ -1,5 +1,5 @@
 import unittest
-from asset_allocation import Graph, Node, LeafNode, InternalNode, AssetClass, Portfolio, TickerHolding
+from asset_allocation import Graph, Node, LeafNode, InternalNode, AssetClass, Portfolio, Holding
 from asset_allocation.quote_service import FakeQuoteService
 
 class TestAssetAllocation(unittest.TestCase):
@@ -19,30 +19,30 @@ class TestAssetAllocation(unittest.TestCase):
         self.assertEqual(portfolio_with_target.cash_value, 1000.0)
         self.assertEqual(portfolio_with_target.cash_target, 2000.0)
 
-    def test_ticker_holding(self):
-        # Test ticker holding
-        ticker = TickerHolding("AAPL", 10, quote_service=self.quote_service)
-        self.assertEqual(ticker.name, "AAPL")
-        self.assertEqual(ticker.shares, 10)
-        self.assertEqual(ticker.value, 1000.0)  # 10 shares * $100 per share
-        self.assertEqual(ticker.children, [])
+    def test_holding(self):
+        # Test holding
+        holding = Holding("AAPL", 10, quote_service=self.quote_service)
+        self.assertEqual(holding.name, "AAPL")
+        self.assertEqual(holding.shares, 10)
+        self.assertEqual(holding.value, 1000.0)  # 10 shares * $100 per share
+        self.assertEqual(holding.children, [])
 
     def test_internal_node(self):
         # Create leaf nodes
-        ticker = TickerHolding("AAPL", 10, quote_service=self.quote_service)
+        holding = Holding("AAPL", 10, quote_service=self.quote_service)
         
         # Create internal node with children
-        internal = InternalNode("Test Group", [ticker])
+        internal = InternalNode("Test Group", [holding])
         self.assertEqual(internal.name, "Test Group")
         self.assertEqual(internal.value, 1000.0)
         self.assertEqual(len(internal.children), 1)
 
     def test_holding_group(self):
         # Create some holdings
-        ticker = TickerHolding("AAPL", 10, quote_service=self.quote_service)
+        holding = Holding("AAPL", 10, quote_service=self.quote_service)
         
         # Create an asset class
-        group = AssetClass("Equity", [ticker], target_allocation=60)
+        group = AssetClass("Equity", [holding], target_allocation=60)
         self.assertEqual(group.name, "Equity")
         self.assertEqual(group.value, 1000.0)
         self.assertEqual(group.target_allocation, 60)
@@ -50,18 +50,18 @@ class TestAssetAllocation(unittest.TestCase):
 
         # Test invalid target allocations
         with self.assertRaises(ValueError):
-            AssetClass("Invalid", [ticker], target_allocation=-10)
+            AssetClass("Invalid", [holding], target_allocation=-10)
         with self.assertRaises(ValueError):
-            AssetClass("Invalid", [ticker], target_allocation=110)
+            AssetClass("Invalid", [holding], target_allocation=110)
 
     def test_nested_groups(self):
         # Create a nested structure
-        ticker1 = TickerHolding("AAPL", 10, quote_service=self.quote_service)
-        ticker2 = TickerHolding("MSFT", 20, quote_service=self.quote_service)
+        holding1 = Holding("AAPL", 10, quote_service=self.quote_service)
+        holding2 = Holding("MSFT", 20, quote_service=self.quote_service)
         
         # Create nested groups
-        fixed_income = AssetClass("Fixed Income", [ticker2], target_allocation=40)
-        portfolio = Portfolio("Portfolio", [ticker1, fixed_income], cash_value=1000.0, cash_target=2000.0)
+        fixed_income = AssetClass("Fixed Income", [holding2], target_allocation=40)
+        portfolio = Portfolio("Portfolio", [holding1, fixed_income], cash_value=1000.0, cash_target=2000.0)
         
         self.assertEqual(portfolio.value, 3000.0)  # Sum of all holdings
         self.assertEqual(fixed_income.value, 2000.0)
