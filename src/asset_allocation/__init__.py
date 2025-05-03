@@ -2,15 +2,8 @@
 Asset Allocation package for managing investment portfolios.
 """
 
-from .holdings import AssetClass, AssetClassCategory, Portfolio, Holding
-from .quote_service import QuoteService, YFinanceQuoteService, FakeQuoteService
+from .holding import Holding
+from .asset_class import AssetClass, AssetClassCategory
+from .portfolio import Portfolio
 
-__all__ = [
-    'AssetClass',
-    'AssetClassCategory',
-    'Portfolio',
-    'Holding',
-    'QuoteService',
-    'YFinanceQuoteService',
-    'FakeQuoteService',
-]
+__all__ = ['Holding', 'AssetClass', 'AssetClassCategory', 'Portfolio']

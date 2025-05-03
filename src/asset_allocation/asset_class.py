@@ -1,5 +1,5 @@
-from .quote_service import QuoteService, YFinanceQuoteService
 from typing import Union
+from .holding import Holding
 
 class AssetClassCategory:
     """A category that can contain other asset classes or categories."""
@@ -90,9 +90,9 @@ class AssetClass:
     """
     name: str
     target_weight: float
-    holdings: list['Holding']
+    holdings: list[Holding]
 
-    def __init__(self, name: str, target_weight: float, holdings: list['Holding']):
+    def __init__(self, name: str, target_weight: float, holdings: list[Holding]):
         if not 0.0 <= target_weight <= 1.0:
             raise ValueError("target_weight must be between 0.0 and 1.0")
         if not holdings:
@@ -155,86 +155,4 @@ class AssetClass:
             proceeds = holding.sell()
             if proceeds > 0:
                 return proceeds
-        return 0
-
-class Holding:
-    """A holding in a portfolio which a ticker symbol and number of shares."""
-    ticker: str
-    shares: float
-    price: float
-
-    def __init__(self, ticker: str, shares: float, price: float):
-        self.ticker = ticker
-        self.shares = shares
-        self.price = price
-        if price <= 0:
-            raise ValueError("price must be positive")
-
-    @classmethod
-    def from_quote_service(cls, ticker: str, shares: float, quote_service: QuoteService) -> 'Holding':
-        """Create a holding with a live price from a quote service.
-        
-        Args:
-            ticker: the ticker symbol
-            shares: the number of shares
-            quote_service: the service to get the current price
-            
-        Returns:
-            A new Holding instance with the current price
-        """
-        price = quote_service.get_price(ticker)
-        return cls(ticker, shares, price)
-
-    @property
-    def name(self):
-        return self.ticker
-
-    @property
-    def value(self):
-        return self.shares * self.price
-
-    def buy(self, budget: float) -> float:
-        """Buy one share of this holding if there is enough budget.
-        
-        Args:
-            budget: the amount of money to spend
-        Returns: 
-            The amount of money spent or 0 if there is not enough budget
-        """
-        if budget < self.price:
-            return 0
-        self.shares += 1
-        return self.price
-    
-    def sell(self) -> float:
-        """Sell one share of this holding, or a fractional share if less than one share.
-        
-        Returns:
-            The proceeds of the sale, if any.
-        """
-        to_sell = min(self.shares, 1.0)
-        self.shares -= to_sell
-        return to_sell * self.price
-
-class Portfolio:
-    """A portfolio of holdings."""
-    cash_value: float
-    cash_target: float | None
-    investments: AssetClassCategory
-
-    def __init__(self, cash_value: float = 0.0, cash_target: float | None = None, children: list[Union['AssetClass', 'AssetClassCategory']] = None):
-        self.cash_value = cash_value
-        self.cash_target = cash_target
-        if not children:
-            raise ValueError("Portfolio must have at least one asset class or category")
-        self.investments = AssetClassCategory("Total", children)
-        self._validate_target_weights()
-
-    def _validate_target_weights(self):
-        """Validate that the sum of target weights is 1.0."""
-        if not abs(self.investments.target_weight - 1.0) < 0.001:  # Using small epsilon for float comparison
-            raise ValueError(f"Sum of target weights must be 1.0, got {self.investments.target_weight}")
-
-    @property
-    def value(self):
-        return self.investments.value + self.cash_value
+        return 0 
