@@ -44,6 +44,23 @@ class TestAssetAllocation(unittest.TestCase):
         with self.assertRaises(ValueError):
             AssetClass("Invalid", [holding], target_weight=1.1)
 
+        # Test actual_weight calculation
+        self.assertEqual(asset_class.actual_weight(2000.0), 0.5)  # 1000/2000 = 0.5
+        self.assertEqual(asset_class.actual_weight(1000.0), 1.0)  # 1000/1000 = 1.0
+        self.assertEqual(asset_class.actual_weight(4000.0), 0.25)  # 1000/4000 = 0.25
+
+        # Test invalid total portfolio value
+        with self.assertRaises(ValueError):
+            asset_class.actual_weight(0.0)
+        with self.assertRaises(ValueError):
+            asset_class.actual_weight(-1000.0)
+
+        # Test with multiple holdings
+        holding2 = Holding("MSFT", 10, quote_service=self.quote_service)
+        asset_class2 = AssetClass("Tech", [holding, holding2], target_weight=0.6)
+        self.assertEqual(asset_class2.value, 2000.0)  # 1000 + 1000
+        self.assertEqual(asset_class2.actual_weight(4000.0), 0.5)  # 2000/4000 = 0.5
+
     def test_asset_class_category(self):
         # Create some holdings
         holding1 = Holding("AAPL", 10, quote_service=self.quote_service)
@@ -59,6 +76,24 @@ class TestAssetAllocation(unittest.TestCase):
         self.assertEqual(equity.value, 2000.0)
         self.assertAlmostEqual(equity.target_weight, 0.6)  # Sum of children's weights
         self.assertEqual(len(equity.children), 2)
+
+        # Test actual_weight calculation
+        self.assertEqual(equity.actual_weight(4000.0), 0.5)  # 2000/4000 = 0.5
+        self.assertEqual(equity.actual_weight(2000.0), 1.0)  # 2000/2000 = 1.0
+        self.assertEqual(equity.actual_weight(8000.0), 0.25)  # 2000/8000 = 0.25
+
+        # Test invalid total portfolio value
+        with self.assertRaises(ValueError):
+            equity.actual_weight(0.0)
+        with self.assertRaises(ValueError):
+            equity.actual_weight(-2000.0)
+
+        # Test with nested categories
+        holding3 = Holding("TLT", 20, quote_service=self.quote_service)
+        bonds = AssetClass("Bonds", [holding3], target_weight=0.4)
+        fixed_income = AssetClassCategory("Fixed Income", [bonds])
+        self.assertEqual(fixed_income.value, 2000.0)  # 20 shares * $100
+        self.assertEqual(fixed_income.actual_weight(4000.0), 0.5)  # 2000/4000 = 0.5
 
     def test_portfolio_target_allocation(self):
         # Create some holdings

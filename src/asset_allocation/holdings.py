@@ -40,8 +40,27 @@ class AssetClassCategory:
     def target_weight(self):
         return sum(child.target_weight for child in self.children)
 
+    def actual_weight(self, total_portfolio_value: float) -> float:
+        """Calculate the actual weight of this category in the portfolio.
+        
+        Args:
+            total_portfolio_value: the investable, non-cash value of the portfolio
+            
+        Returns:
+            The ratio of this category's value to the total portfolio value
+        """
+        if total_portfolio_value <= 0:
+            raise ValueError("total_portfolio_value must be positive")
+        return self.value / total_portfolio_value
+
 class AssetClass:
-    """A group of holdings in a portfolio."""
+    """A group of holdings in a portfolio.
+    
+    The holdings are in preference order:
+    - When buying more of this asset class, we will buy more of the first holding
+    - When selling from this asset class, we will sell from the last holding first,
+      then the second-to-last, and so on
+    """
     name: str
     target_weight: float
     children: list['Holding']
@@ -56,6 +75,19 @@ class AssetClass:
     @property
     def value(self):
         return sum(child.value for child in self.children)
+
+    def actual_weight(self, total_portfolio_value: float) -> float:
+        """Calculate the actual weight of this asset class in the portfolio.
+        
+        Args:
+            total_portfolio_value: the investable, non-cash value of the portfolio
+            
+        Returns:
+            The ratio of this asset class's value to the total portfolio value
+        """
+        if total_portfolio_value <= 0:
+            raise ValueError("total_portfolio_value must be positive")
+        return self.value / total_portfolio_value
 
 class Holding:
     """A holding in a portfolio which a ticker symbol and number of shares."""
