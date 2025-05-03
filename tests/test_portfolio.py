@@ -44,3 +44,56 @@ class TestPortfolio(unittest.TestCase):
         portfolio = Portfolio(cash_value=1000.0, children=[equity, fixed_income])
         
         self.assertEqual(portfolio.value, 4000.0)  # 1000 (cash) + 3000 (holdings) 
+
+    def test_excess_cash_calculation(self):
+        holding = Holding("AAPL", 10, price=100.0)
+        asset_class = AssetClass("US Equity", target_weight=1.0, holdings=[holding])
+        portfolio = Portfolio(cash_value=1000.0, cash_target=500.0, children=[asset_class])
+        
+        self.assertEqual(portfolio.excess_cash, 500.0)  # 1000 - 500 target
+
+    def test_excess_cash_with_no_target(self):
+        holding = Holding("AAPL", 10, price=100.0)
+        asset_class = AssetClass("US Equity", target_weight=1.0, holdings=[holding])
+        portfolio = Portfolio(cash_value=1000.0, cash_target=None, children=[asset_class])
+        
+        self.assertEqual(portfolio.excess_cash, 1000.0)  # All cash is excess when no target
+
+    def test_excess_cash_below_target(self):
+        holding = Holding("AAPL", 10, price=100.0)
+        asset_class = AssetClass("US Equity", target_weight=1.0, holdings=[holding])
+        portfolio = Portfolio(cash_value=300.0, cash_target=500.0, children=[asset_class])
+        
+        self.assertEqual(portfolio.excess_cash, 0.0)  # No excess when below target
+
+    def test_investible_value(self):
+        holding = Holding("AAPL", 10, price=100.0)
+        asset_class = AssetClass("US Equity", target_weight=1.0, holdings=[holding])
+        portfolio = Portfolio(cash_value=1000.0, cash_target=500.0, children=[asset_class])
+        
+        # investible_value = investments (1000) + excess_cash (500)
+        self.assertEqual(portfolio.investible_value, 1500.0)
+
+    def test_invest_excess_cash(self):
+        holding = Holding("AAPL", 10, price=100.0)
+        asset_class = AssetClass("US Equity", target_weight=1.0, holdings=[holding])
+        portfolio = Portfolio(cash_value=1000.0, cash_target=500.0, children=[asset_class])
+        
+        portfolio.invest_excess_cash()
+        
+        # After investing excess cash, cash should be at target
+        self.assertEqual(portfolio.cash_value, 500.0)
+        # Total value should remain the same
+        self.assertEqual(portfolio.value, 2000.0)
+
+    def test_invest_excess_cash_with_no_target(self):
+        holding = Holding("AAPL", 10, price=100.0)
+        asset_class = AssetClass("US Equity", target_weight=1.0, holdings=[holding])
+        portfolio = Portfolio(cash_value=1000.0, cash_target=None, children=[asset_class])
+        
+        portfolio.invest_excess_cash()
+        
+        # All cash should be invested when no target
+        self.assertEqual(portfolio.cash_value, 0.0)
+        # Total value should remain the same
+        self.assertEqual(portfolio.value, 2000.0) 

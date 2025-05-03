@@ -23,3 +23,24 @@ class Portfolio:
     @property
     def value(self):
         return self.investments.value + self.cash_value 
+
+    @property
+    def excess_cash(self):
+        """The amount of cash that is above the cash target."""
+        return max(0, self.cash_value - self.cash_target)
+
+    @property
+    def investible_value(self):
+        """The value of the portfolio's investments and excess cash."""
+        return self.investments.value + self.excess_cash
+
+    def invest_excess_cash(self):
+        """While there is excess cash, invest it in the portfolio."""
+        while self.excess_cash > 0:
+            spent = self.investments.buy(self.excess_cash, self.investible_value)
+            if spent > 0:
+                self.cash_value -= spent
+            else:
+                print("No more excess cash to invest. Stopping.")
+                break
+
