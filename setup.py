@@ -7,6 +7,7 @@ setup(
     package_dir={"": "src"},
     install_requires=[
         "yfinance",
+        "PyYAML",
     ],
     python_requires=">=3.7",
 ) 

@@ -60,8 +60,9 @@ class AssetClassCategory:
         # Create a copy of the children list and sort it by fractional deviation ascending.
         children = sorted(self.children, key=lambda x: x.fractional_deviation(total_portfolio_value))
         for child in children:
-            if child.buy(budget, total_portfolio_value) > 0:
-                return budget
+            spent = child.buy(budget, total_portfolio_value)
+            if spent > 0:
+                return spent
         return 0
     
     def sell(self, total_portfolio_value: float) -> float:

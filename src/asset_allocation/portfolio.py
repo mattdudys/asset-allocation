@@ -4,10 +4,10 @@ from .asset_class import AssetClass, AssetClassCategory
 class Portfolio:
     """A portfolio of holdings."""
     cash_value: float
-    cash_target: float | None
+    cash_target: float
     investments: AssetClassCategory
 
-    def __init__(self, cash_value: float = 0.0, cash_target: float | None = None, children: list[Union[AssetClass, AssetClassCategory]] = None):
+    def __init__(self, cash_value: float = 0.0, cash_target: float = 0.0, children: list[Union[AssetClass, AssetClassCategory]] = None):
         self.cash_value = cash_value
         self.cash_target = cash_target
         if not children:
@@ -27,6 +27,8 @@ class Portfolio:
     @property
     def excess_cash(self):
         """The amount of cash that is above the cash target."""
+        if self.cash_target is None:
+            return self.cash_value  # All cash is excess when no target
         return max(0, self.cash_value - self.cash_target)
 
     @property
@@ -37,7 +39,9 @@ class Portfolio:
     def invest_excess_cash(self):
         """While there is excess cash, invest it in the portfolio."""
         while self.excess_cash > 0:
-            spent = self.investments.buy(self.excess_cash, self.investible_value)
+            # Calculate how much to invest in this iteration
+            to_invest = min(self.excess_cash, self.investible_value)
+            spent = self.investments.buy(to_invest, self.investible_value)
             if spent > 0:
                 self.cash_value -= spent
             else:

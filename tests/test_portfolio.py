@@ -83,8 +83,10 @@ class TestPortfolio(unittest.TestCase):
         
         # After investing excess cash, cash should be at target
         self.assertEqual(portfolio.cash_value, 500.0)
-        # Total value should remain the same
+        # Total value should remain the same (1000 cash + 1000 holdings)
         self.assertEqual(portfolio.value, 2000.0)
+        # Holdings value should increase by the amount invested
+        self.assertEqual(portfolio.investments.value, 1500.0)
 
     def test_invest_excess_cash_with_no_target(self):
         holding = Holding("AAPL", 10, price=100.0)
