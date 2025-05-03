@@ -336,6 +336,67 @@ class TestAssetClassCategory(unittest.TestCase):
         self.assertAlmostEqual(equity.target_weight, 0.6)  # 0.4 + 0.2
         self.assertAlmostEqual(fixed_income.target_weight, 0.4)
 
+    def test_category_sell_from_most_overweight(self):
+        # Create holdings with different weights
+        holding1 = Holding("AAPL", 10, price=100.0)  # 1000 value
+        holding2 = Holding("MSFT", 10, price=100.0)  # 1000 value
+        holding3 = Holding("TLT", 20, price=100.0)   # 2000 value
+        
+        # Create asset classes with different target weights
+        us_equity = AssetClass("US Equity", target_weight=0.4, holdings=[holding1])
+        intl_equity = AssetClass("International Equity", target_weight=0.2, holdings=[holding2])
+        bonds = AssetClass("Bonds", target_weight=0.4, holdings=[holding3])
+        
+        # Create categories
+        equity = AssetClassCategory("Equity", [us_equity, intl_equity])
+        fixed_income = AssetClassCategory("Fixed Income", [bonds])
+        
+        # With total portfolio value of 4000:
+        # US Equity: 1000/4000 = 0.25 actual vs 0.4 target (underweight)
+        # Intl Equity: 1000/4000 = 0.25 actual vs 0.2 target (overweight)
+        # Bonds: 2000/4000 = 0.5 actual vs 0.4 target (overweight)
+        # Intl Equity is most overweight, so it should sell first
+        proceeds = equity.sell(4000.0)
+        self.assertEqual(proceeds, 100.0)  # One share of MSFT at $100
+        self.assertEqual(holding1.shares, 10)  # AAPL unchanged
+        self.assertEqual(holding2.shares, 9)   # MSFT reduced by 1
+
+    def test_category_sell_from_second_most_overweight(self):
+        holding1 = Holding("AAPL", 10, price=100.0)  # 1000 value
+        holding2 = Holding("MSFT", 0, price=100.0)   # 0 value
+        holding3 = Holding("TLT", 20, price=100.0)   # 2000 value
+        
+        us_equity = AssetClass("US Equity", target_weight=0.4, holdings=[holding1])
+        intl_equity = AssetClass("International Equity", target_weight=0.2, holdings=[holding2])
+        bonds = AssetClass("Bonds", target_weight=0.4, holdings=[holding3])
+        
+        equity = AssetClassCategory("Equity", [us_equity, intl_equity])
+        fixed_income = AssetClassCategory("Fixed Income", [bonds])
+        
+        # With total portfolio value of 3000:
+        # US Equity: 1000/3000 = 0.33 actual vs 0.4 target (slightly underweight)
+        # Intl Equity: 0/3000 = 0 actual vs 0.2 target (underweight)
+        # Bonds: 2000/3000 = 0.67 actual vs 0.4 target (overweight)
+        # Intl Equity has no shares to sell, so it should try US Equity next
+        proceeds = equity.sell(3000.0)
+        self.assertEqual(proceeds, 100.0)  # One share of AAPL at $100
+        self.assertEqual(holding1.shares, 9)  # AAPL reduced by 1
+        self.assertEqual(holding2.shares, 0)  # MSFT unchanged
+
+    def test_category_sell_returns_zero_when_all_empty(self):
+        holding1 = Holding("AAPL", 0, price=100.0)
+        holding2 = Holding("MSFT", 0, price=100.0)
+        
+        us_equity = AssetClass("US Equity", target_weight=0.4, holdings=[holding1])
+        intl_equity = AssetClass("International Equity", target_weight=0.2, holdings=[holding2])
+        
+        equity = AssetClassCategory("Equity", [us_equity, intl_equity])
+        
+        proceeds = equity.sell(1000.0)
+        self.assertEqual(proceeds, 0.0)  # No shares to sell
+        self.assertEqual(holding1.shares, 0)  # AAPL unchanged
+        self.assertEqual(holding2.shares, 0)  # MSFT unchanged
+
 class TestPortfolio(unittest.TestCase):
     def test_empty_portfolio_creation(self):
         portfolio = Portfolio(cash_value=1000.0, children=[])

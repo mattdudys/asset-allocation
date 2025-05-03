@@ -71,8 +71,7 @@ class AssetClassCategory:
         return (self.actual_weight(total_portfolio_value) / self.target_weight) - 1
 
     def buy(self, budget: float, total_portfolio_value: float) -> float:
-        """Identifies the child asset class with the highest fractional deviation from target weight
-        and attempts to buy one share of an underlying holding.
+        """Identifies the most underweight child asset class and attempts to buy one share of an underlying holding.
 
         Args:
             budget: the amount of money to spend
@@ -85,6 +84,22 @@ class AssetClassCategory:
         for child in children:
             if child.buy(budget, total_portfolio_value) > 0:
                 return budget
+        return 0
+    
+    def sell(self, total_portfolio_value: float) -> float:
+        """Identifies the most overweight child asset class and attempts to sell one share of an underlying holding.
+
+        Args:
+            total_portfolio_value: the investable, non-cash value of the portfolio
+        Returns:
+            The amount of money received or 0 if there is nothing to sell
+        """
+        # Create a copy of the children list and sort it by fractional deviation descending.
+        children = sorted(self.children, key=lambda x: x.fractional_deviation(total_portfolio_value), reverse=True)
+        for child in children:
+            proceeds = child.sell()
+            if proceeds > 0:
+                return proceeds
         return 0
 
 class AssetClass:
