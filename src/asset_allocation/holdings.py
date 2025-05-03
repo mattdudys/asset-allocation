@@ -29,6 +29,8 @@ class AssetClassCategory:
     children: list[Union['AssetClass', 'AssetClassCategory']]
 
     def __init__(self, name: str, children: list[Union['AssetClass', 'AssetClassCategory']]):
+        if not children:
+            raise ValueError("AssetClassCategory must have at least one child")
         self.name = name
         self.children = children
 
@@ -83,6 +85,8 @@ class AssetClass:
     def __init__(self, name: str, target_weight: float, holdings: list['Holding']):
         if not 0.0 <= target_weight <= 1.0:
             raise ValueError("target_weight must be between 0.0 and 1.0")
+        if not holdings:
+            raise ValueError("AssetClass must have at least one holding")
         self.name = name
         self.target_weight = target_weight
         self.holdings = holdings
@@ -118,7 +122,19 @@ class AssetClass:
         if total_portfolio_value <= 0:
             raise ValueError("total_portfolio_value must be positive")
         return (self.actual_weight(total_portfolio_value) / self.target_weight) - 1
-    
+
+    def buy(self, budget: float) -> float:
+        """Buy one share of this asset class's preferred holding if there is enough budget.
+        
+        Args:
+            budget: the amount of money to spend
+            
+        Returns:
+            The amount of money spent or 0 if there is not enough budget
+        """
+        if not self.holdings:
+            return 0
+        return self.holdings[0].buy(budget)
 
 class Holding:
     """A holding in a portfolio which a ticker symbol and number of shares."""

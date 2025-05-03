@@ -133,6 +133,11 @@ class TestAssetClass(unittest.TestCase):
         with self.assertRaises(ValueError):
             AssetClass("Invalid", target_weight=1.1, holdings=[holding])
 
+    def test_asset_class_rejects_empty_holdings(self):
+        with self.assertRaises(ValueError) as cm:
+            AssetClass("Invalid", target_weight=0.4, holdings=[])
+        self.assertEqual(str(cm.exception), "AssetClass must have at least one holding")
+
     def test_asset_class_rejects_zero_portfolio_value(self):
         holding = Holding("AAPL", 10, price=100.0)
         asset_class = AssetClass("US Equity", target_weight=0.4, holdings=[holding])
@@ -144,6 +149,30 @@ class TestAssetClass(unittest.TestCase):
         asset_class = AssetClass("US Equity", target_weight=0.4, holdings=[holding])
         with self.assertRaises(ValueError):
             asset_class.actual_weight(-1000.0)
+
+    def test_asset_class_buy_with_sufficient_budget(self):
+        holding = Holding("AAPL", 10, price=100.0)
+        asset_class = AssetClass("US Equity", target_weight=0.4, holdings=[holding])
+        spent = asset_class.buy(150.0)
+        self.assertEqual(spent, 100.0)
+        self.assertEqual(holding.shares, 11)
+
+    def test_asset_class_buy_with_insufficient_budget(self):
+        holding = Holding("AAPL", 10, price=100.0)
+        asset_class = AssetClass("US Equity", target_weight=0.4, holdings=[holding])
+        spent = asset_class.buy(50.0)
+        self.assertEqual(spent, 0.0)
+        self.assertEqual(holding.shares, 10)
+
+    def test_asset_class_buy_with_multiple_holdings(self):
+        holding1 = Holding("AAPL", 10, price=100.0)
+        holding2 = Holding("MSFT", 10, price=100.0)
+        asset_class = AssetClass("Tech", target_weight=0.6, holdings=[holding1, holding2])
+        
+        spent = asset_class.buy(150.0)
+        self.assertEqual(spent, 100.0)
+        self.assertEqual(holding1.shares, 11)  # First holding should be bought
+        self.assertEqual(holding2.shares, 10)  # Second holding should be unchanged
 
     def test_asset_class_with_multiple_holdings(self):
         holding1 = Holding("AAPL", 10, price=100.0)
@@ -161,6 +190,11 @@ class TestAssetClassCategory(unittest.TestCase):
         
         self.assertEqual(category.name, "Equity")
         self.assertEqual(len(category.children), 1)
+
+    def test_category_rejects_empty_children(self):
+        with self.assertRaises(ValueError) as cm:
+            AssetClassCategory("Invalid", [])
+        self.assertEqual(str(cm.exception), "AssetClassCategory must have at least one child")
 
     def test_category_value_sums_children(self):
         holding1 = Holding("AAPL", 10, price=100.0)
