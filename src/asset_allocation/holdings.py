@@ -118,17 +118,35 @@ class AssetClass:
         if total_portfolio_value <= 0:
             raise ValueError("total_portfolio_value must be positive")
         return (self.actual_weight(total_portfolio_value) / self.target_weight) - 1
+    
 
 class Holding:
     """A holding in a portfolio which a ticker symbol and number of shares."""
     ticker: str
     shares: float
-    _quote_service: QuoteService
+    price: float
 
-    def __init__(self, ticker: str, shares: float, quote_service: QuoteService | None = None):
+    def __init__(self, ticker: str, shares: float, price: float):
         self.ticker = ticker
         self.shares = shares
-        self._quote_service = quote_service or YFinanceQuoteService()
+        self.price = price
+        if price <= 0:
+            raise ValueError("price must be positive")
+
+    @classmethod
+    def from_quote_service(cls, ticker: str, shares: float, quote_service: QuoteService) -> 'Holding':
+        """Create a holding with a live price from a quote service.
+        
+        Args:
+            ticker: the ticker symbol
+            shares: the number of shares
+            quote_service: the service to get the current price
+            
+        Returns:
+            A new Holding instance with the current price
+        """
+        price = quote_service.get_price(ticker)
+        return cls(ticker, shares, price)
 
     @property
     def name(self):
@@ -136,4 +154,17 @@ class Holding:
 
     @property
     def value(self):
-        return self.shares * self._quote_service.get_price(self.ticker)
+        return self.shares * self.price
+
+    def buy(self, budget: float) -> float:
+        """Buy one share of this holding if there is enough budget.
+        
+        Args:
+            budget: the amount of money to spend
+        Returns: 
+            The amount of money spent or 0 if there is not enough budget
+        """
+        if budget < self.price:
+            return 0
+        self.shares += 1
+        return self.price
