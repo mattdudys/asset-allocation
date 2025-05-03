@@ -61,6 +61,25 @@ class TestAssetAllocation(unittest.TestCase):
         self.assertEqual(asset_class2.value, 2000.0)  # 1000 + 1000
         self.assertEqual(asset_class2.actual_weight(4000.0), 0.5)  # 2000/4000 = 0.5
 
+        # Test fractional_deviation calculation
+        # Target weight is 0.4, actual weight is 0.5 (1000/2000)
+        # Deviation = (0.5/0.4) - 1 = 0.25 (25% overweight)
+        self.assertEqual(asset_class.fractional_deviation(2000.0), 0.25)
+
+        # Target weight is 0.4, actual weight is 0.25 (1000/4000)
+        # Deviation = (0.25/0.4) - 1 = -0.375 (37.5% underweight)
+        self.assertEqual(asset_class.fractional_deviation(4000.0), -0.375)
+
+        # Target weight is 0.4, actual weight is 0.4 (1000/2500)
+        # Deviation = (0.4/0.4) - 1 = 0.0 (perfectly balanced)
+        self.assertEqual(asset_class.fractional_deviation(2500.0), 0.0)
+
+        # Test invalid total portfolio value
+        with self.assertRaises(ValueError):
+            asset_class.fractional_deviation(0.0)
+        with self.assertRaises(ValueError):
+            asset_class.fractional_deviation(-1000.0)
+
     def test_asset_class_category(self):
         # Create some holdings
         holding1 = Holding("AAPL", 10, quote_service=self.quote_service)
@@ -94,6 +113,25 @@ class TestAssetAllocation(unittest.TestCase):
         fixed_income = AssetClassCategory("Fixed Income", [bonds])
         self.assertEqual(fixed_income.value, 2000.0)  # 20 shares * $100
         self.assertEqual(fixed_income.actual_weight(4000.0), 0.5)  # 2000/4000 = 0.5
+
+        # Test fractional_deviation calculation
+        # Target weight is 0.6, actual weight is 0.5 (2000/4000)
+        # Deviation = (0.5/0.6) - 1 = -0.167 (16.7% underweight)
+        self.assertAlmostEqual(equity.fractional_deviation(4000.0), -0.167, places=3)
+
+        # Target weight is 0.6, actual weight is 1.0 (2000/2000)
+        # Deviation = (1.0/0.6) - 1 = 0.667 (66.7% overweight)
+        self.assertAlmostEqual(equity.fractional_deviation(2000.0), 0.667, places=3)
+
+        # Target weight is 0.6, actual weight is 0.6 (2000/3333.33)
+        # Deviation = (0.6/0.6) - 1 = 0.0 (perfectly balanced)
+        self.assertAlmostEqual(equity.fractional_deviation(3333.33), 0.0, places=3)
+
+        # Test invalid total portfolio value
+        with self.assertRaises(ValueError):
+            equity.fractional_deviation(0.0)
+        with self.assertRaises(ValueError):
+            equity.fractional_deviation(-2000.0)
 
     def test_portfolio_target_allocation(self):
         # Create some holdings

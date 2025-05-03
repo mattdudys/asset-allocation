@@ -53,6 +53,21 @@ class AssetClassCategory:
             raise ValueError("total_portfolio_value must be positive")
         return self.value / total_portfolio_value
 
+    def fractional_deviation(self, total_portfolio_value: float) -> float:
+        """Calculate how much this category deviates from its target weight.
+        
+        Args:
+            total_portfolio_value: the investable, non-cash value of the portfolio
+            
+        Returns:
+            The fractional deviation from target weight. Positive means overweight,
+            negative means underweight. For example, 0.1 means 10% overweight,
+            -0.1 means 10% underweight.
+        """
+        if total_portfolio_value <= 0:
+            raise ValueError("total_portfolio_value must be positive")
+        return (self.actual_weight(total_portfolio_value) / self.target_weight) - 1
+
 class AssetClass:
     """A group of holdings in a portfolio.
     
@@ -88,6 +103,21 @@ class AssetClass:
         if total_portfolio_value <= 0:
             raise ValueError("total_portfolio_value must be positive")
         return self.value / total_portfolio_value
+
+    def fractional_deviation(self, total_portfolio_value: float) -> float:
+        """Calculate how much this asset class deviates from its target weight.
+        
+        Args:
+            total_portfolio_value: the investable, non-cash value of the portfolio
+            
+        Returns:
+            The fractional deviation from target weight. Positive means overweight,
+            negative means underweight. For example, 0.1 means 10% overweight,
+            -0.1 means 10% underweight.
+        """
+        if total_portfolio_value <= 0:
+            raise ValueError("total_portfolio_value must be positive")
+        return (self.actual_weight(total_portfolio_value) / self.target_weight) - 1
 
 class Holding:
     """A holding in a portfolio which a ticker symbol and number of shares."""
