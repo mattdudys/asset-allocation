@@ -1,30 +1,17 @@
 from typing import Optional
 
-class Graph:
-    def __init__(self):
-        self.nodes = {}
-
 class Node:
     name: str
     parent: Optional['Node']
-    value: float
+    children: list['Node']
 
-    def __init__(self, name: str, parent: Optional['Node'] = None):
+    def __init__(self, name: str, children: list['Node'] = None):
         self.name = name
-        self.parent = parent
-
-class LeafNode(Node):
-    @property
-    def children(self):
-        return []
-
-class InternalNode(Node):
-    children: list[Node]
-
-    def __init__(self, name: str, children: list[Node]):
-        super().__init__(name)
-        self.children = children
+        self.parent = None
+        self.children = children or []
 
     @property
     def value(self):
+        if not self.children:
+            return 0.0
         return sum(child.value for child in self.children) 
