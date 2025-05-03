@@ -1,13 +1,14 @@
 import unittest
-from unittest.mock import Mock, patch
-import yfinance
 from asset_allocation import Graph, Node, LeafNode, InternalNode, AssetClass, Portfolio, TickerHolding
+from asset_allocation.quote_service import FakeQuoteService
 
 class TestAssetAllocation(unittest.TestCase):
     def setUp(self):
-        # Create a mock for yfinance.Ticker
-        self.mock_ticker = Mock(spec=yfinance.Ticker)
-        self.mock_ticker.info = {'regularMarketPrice': 100.0}
+        # Create a fake quote service with fixed prices
+        self.quote_service = FakeQuoteService({
+            "AAPL": 100.0,
+            "MSFT": 100.0
+        })
         
     def test_portfolio_cash(self):
         portfolio = Portfolio("Test Portfolio", [], cash_value=1000.0)
@@ -18,13 +19,9 @@ class TestAssetAllocation(unittest.TestCase):
         self.assertEqual(portfolio_with_target.cash_value, 1000.0)
         self.assertEqual(portfolio_with_target.cash_target, 2000.0)
 
-    @patch('yfinance.Ticker')
-    def test_ticker_holding(self, mock_ticker_class):
-        # Setup mock
-        mock_ticker_class.return_value = self.mock_ticker
-        
+    def test_ticker_holding(self):
         # Test ticker holding
-        ticker = TickerHolding("AAPL", 10)
+        ticker = TickerHolding("AAPL", 10, quote_service=self.quote_service)
         self.assertEqual(ticker.name, "AAPL")
         self.assertEqual(ticker.shares, 10)
         self.assertEqual(ticker.value, 1000.0)  # 10 shares * $100 per share
@@ -32,7 +29,7 @@ class TestAssetAllocation(unittest.TestCase):
 
     def test_internal_node(self):
         # Create leaf nodes
-        ticker = TickerHolding("AAPL", 10)
+        ticker = TickerHolding("AAPL", 10, quote_service=self.quote_service)
         
         # Create internal node with children
         internal = InternalNode("Test Group", [ticker])
@@ -42,7 +39,7 @@ class TestAssetAllocation(unittest.TestCase):
 
     def test_holding_group(self):
         # Create some holdings
-        ticker = TickerHolding("AAPL", 10)
+        ticker = TickerHolding("AAPL", 10, quote_service=self.quote_service)
         
         # Create an asset class
         group = AssetClass("Equity", [ticker], target_allocation=60)
@@ -59,8 +56,8 @@ class TestAssetAllocation(unittest.TestCase):
 
     def test_nested_groups(self):
         # Create a nested structure
-        ticker1 = TickerHolding("AAPL", 10)
-        ticker2 = TickerHolding("MSFT", 20)
+        ticker1 = TickerHolding("AAPL", 10, quote_service=self.quote_service)
+        ticker2 = TickerHolding("MSFT", 20, quote_service=self.quote_service)
         
         # Create nested groups
         fixed_income = AssetClass("Fixed Income", [ticker2], target_allocation=40)

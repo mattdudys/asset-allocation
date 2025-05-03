@@ -1,5 +1,6 @@
 import yfinance
 from .graph import LeafNode, InternalNode, Node
+from .quote_service import QuoteService, YFinanceQuoteService
 
 class Portfolio(InternalNode):
     """A portfolio of holdings."""
@@ -25,12 +26,12 @@ class TickerHolding(LeafNode):
     """A holding in a portfolio which a ticker symbol and number of shares."""
     ticker: str
     shares: float
-    _ticker: yfinance.Ticker
+    _quote_service: QuoteService
 
-    def __init__(self, ticker: str, shares: float):
+    def __init__(self, ticker: str, shares: float, quote_service: QuoteService | None = None):
         self.ticker = ticker
         self.shares = shares
-        self._ticker = yfinance.Ticker(ticker)
+        self._quote_service = quote_service or YFinanceQuoteService()
 
     @property
     def name(self):
@@ -38,4 +39,4 @@ class TickerHolding(LeafNode):
     
     @property
     def value(self):
-        return self.shares * self._ticker.info['regularMarketPrice'] 
+        return self.shares * self._quote_service.get_price(self.ticker) 
