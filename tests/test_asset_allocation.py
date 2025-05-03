@@ -399,15 +399,20 @@ class TestAssetClassCategory(unittest.TestCase):
 
 class TestPortfolio(unittest.TestCase):
     def test_empty_portfolio_creation(self):
-        portfolio = Portfolio(cash_value=1000.0, children=[])
-        self.assertEqual(portfolio.cash_value, 1000.0)
-        self.assertEqual(portfolio.cash_target, None)
-        self.assertEqual(portfolio.value, 1000.0)
+        """Test that a portfolio cannot be created without any asset classes."""
+        with self.assertRaises(ValueError) as cm:
+            Portfolio()
+        self.assertEqual(str(cm.exception), "Portfolio must have at least one asset class or category")
 
     def test_portfolio_with_cash_target(self):
-        portfolio = Portfolio(cash_value=1000.0, cash_target=2000.0, children=[])
+        portfolio = Portfolio(
+            cash_value=1000.0,
+            cash_target=2000.0,
+            children=[AssetClass("Stocks", 1.0, [Holding("AAPL", 0, 100.0)])]
+        )
         self.assertEqual(portfolio.cash_value, 1000.0)
         self.assertEqual(portfolio.cash_target, 2000.0)
+        self.assertEqual(portfolio.investments.name, "Total")
 
     def test_portfolio_value_sums_children_and_cash(self):
         holding1 = Holding("AAPL", 10, price=100.0)
@@ -420,6 +425,8 @@ class TestPortfolio(unittest.TestCase):
         
         portfolio = Portfolio(cash_value=1000.0, children=[us_equity, intl_equity, bonds])
         self.assertEqual(portfolio.value, 5000.0)  # 1000 + 1000 + 2000 + 1000 cash
+        self.assertEqual(portfolio.investments.name, "Total")
+        self.assertEqual(len(portfolio.investments.children), 3)
 
     def test_portfolio_rejects_invalid_target_weights(self):
         holding = Holding("AAPL", 10, price=100.0)
@@ -447,7 +454,8 @@ class TestPortfolio(unittest.TestCase):
         self.assertEqual(portfolio.value, 5000.0)  # 2000 + 2000 + 1000 cash
         self.assertEqual(equity.value, 2000.0)  # AAPL + MSFT
         self.assertEqual(fixed_income.value, 2000.0)  # TLT
-        self.assertEqual(len(portfolio.children), 2)
+        self.assertEqual(portfolio.investments.name, "Total")
+        self.assertEqual(len(portfolio.investments.children), 2)
         self.assertEqual(portfolio.cash_value, 1000.0)
         self.assertEqual(portfolio.cash_target, 2000.0)
         self.assertAlmostEqual(equity.target_weight, 0.6)  # 0.4 + 0.2
