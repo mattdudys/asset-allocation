@@ -70,6 +70,23 @@ class AssetClassCategory:
             raise ValueError("total_portfolio_value must be positive")
         return (self.actual_weight(total_portfolio_value) / self.target_weight) - 1
 
+    def buy(self, budget: float, total_portfolio_value: float) -> float:
+        """Identifies the child asset class with the highest fractional deviation from target weight
+        and attempts to buy one share of an underlying holding.
+
+        Args:
+            budget: the amount of money to spend
+            total_portfolio_value: the investable, non-cash value of the portfolio
+        Returns:
+            The amount of money spent or 0 if there is not enough budget
+        """
+        # Create a copy of the children list and sort it by fractional deviation ascending.
+        children = sorted(self.children, key=lambda x: x.fractional_deviation(total_portfolio_value))
+        for child in children:
+            if child.buy(budget, total_portfolio_value) > 0:
+                return budget
+        return 0
+
 class AssetClass:
     """A group of holdings in a portfolio.
     
@@ -123,17 +140,16 @@ class AssetClass:
             raise ValueError("total_portfolio_value must be positive")
         return (self.actual_weight(total_portfolio_value) / self.target_weight) - 1
 
-    def buy(self, budget: float) -> float:
+    def buy(self, budget: float, total_portfolio_value: float) -> float:
         """Buy one share of this asset class's preferred holding if there is enough budget.
         
         Args:
             budget: the amount of money to spend
+            total_portfolio_value: the investable, non-cash value of the portfolio
             
         Returns:
             The amount of money spent or 0 if there is not enough budget
         """
-        if not self.holdings:
-            return 0
         return self.holdings[0].buy(budget)
 
     def sell(self) -> float:

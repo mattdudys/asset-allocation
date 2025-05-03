@@ -153,14 +153,14 @@ class TestAssetClass(unittest.TestCase):
     def test_asset_class_buy_with_sufficient_budget(self):
         holding = Holding("AAPL", 10, price=100.0)
         asset_class = AssetClass("US Equity", target_weight=0.4, holdings=[holding])
-        spent = asset_class.buy(150.0)
+        spent = asset_class.buy(150.0, 2500.0)
         self.assertEqual(spent, 100.0)
         self.assertEqual(holding.shares, 11)
 
     def test_asset_class_buy_with_insufficient_budget(self):
         holding = Holding("AAPL", 10, price=100.0)
         asset_class = AssetClass("US Equity", target_weight=0.4, holdings=[holding])
-        spent = asset_class.buy(50.0)
+        spent = asset_class.buy(50.0, 2500.0)
         self.assertEqual(spent, 0.0)
         self.assertEqual(holding.shares, 10)
 
@@ -169,7 +169,7 @@ class TestAssetClass(unittest.TestCase):
         holding2 = Holding("MSFT", 10, price=100.0)
         asset_class = AssetClass("Tech", target_weight=0.6, holdings=[holding1, holding2])
         
-        spent = asset_class.buy(150.0)
+        spent = asset_class.buy(150.0, 2500.0)
         self.assertEqual(spent, 100.0)
         self.assertEqual(holding1.shares, 11)  # First holding should be bought
         self.assertEqual(holding2.shares, 10)  # Second holding should be unchanged
