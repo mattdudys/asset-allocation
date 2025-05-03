@@ -168,3 +168,13 @@ class Holding:
             return 0
         self.shares += 1
         return self.price
+    
+    def sell(self) -> float:
+        """Sell one share of this holding, or a fractional share if less than one share.
+        
+        Returns:
+            The proceeds of the sale, if any.
+        """
+        to_sell = min(self.shares, 1.0)
+        self.shares -= to_sell
+        return to_sell * self.price

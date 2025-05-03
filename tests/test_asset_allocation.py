@@ -41,6 +41,38 @@ class TestHolding(unittest.TestCase):
         self.assertEqual(spent, 0.0)
         self.assertEqual(holding.shares, 10)
 
+    def test_holding_sell_full_share(self):
+        holding = Holding("AAPL", 10, price=100.0)
+        proceeds = holding.sell()
+        self.assertEqual(proceeds, 100.0)  # 1 share * $100
+        self.assertEqual(holding.shares, 9)
+
+    def test_holding_sell_fractional_share(self):
+        holding = Holding("AAPL", 0.5, price=100.0)
+        proceeds = holding.sell()
+        self.assertEqual(proceeds, 50.0)  # 0.5 shares * $100
+        self.assertEqual(holding.shares, 0)
+
+    def test_holding_sell_zero_shares(self):
+        holding = Holding("AAPL", 0, price=100.0)
+        proceeds = holding.sell()
+        self.assertEqual(proceeds, 0.0)
+        self.assertEqual(holding.shares, 0)
+
+    def test_holding_sell_multiple_times(self):
+        holding = Holding("AAPL", 2.5, price=100.0)
+        proceeds1 = holding.sell()
+        self.assertEqual(proceeds1, 100.0)  # 1 share * $100
+        self.assertEqual(holding.shares, 1.5)
+        
+        proceeds2 = holding.sell()
+        self.assertEqual(proceeds2, 100.0)  # 1 share * $100
+        self.assertEqual(holding.shares, 0.5)
+        
+        proceeds3 = holding.sell()
+        self.assertEqual(proceeds3, 50.0)  # 0.5 shares * $100
+        self.assertEqual(holding.shares, 0)
+
 class TestAssetClass(unittest.TestCase):
     def test_asset_class_creation_sets_basic_properties(self):
         holding = Holding("AAPL", 10, price=100.0)
