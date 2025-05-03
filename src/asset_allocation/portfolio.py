@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, List
 from .asset_class import AssetClass, AssetClassCategory
 
 class Portfolio:
@@ -7,7 +7,7 @@ class Portfolio:
     cash_target: float
     investments: AssetClassCategory
 
-    def __init__(self, cash_value: float = 0.0, cash_target: float = 0.0, children: list[Union[AssetClass, AssetClassCategory]] = None):
+    def __init__(self, cash_value: float = 0.0, cash_target: float = 0.0, children: List[Union[AssetClass, AssetClassCategory]] = None):
         self.cash_value = cash_value
         self.cash_target = cash_target
         if not children:
@@ -36,15 +36,21 @@ class Portfolio:
         """The value of the portfolio's investments and excess cash."""
         return self.investments.value + self.excess_cash
 
-    def invest_excess_cash(self):
+    def invest_excess_cash(self) -> None:
         """While there is excess cash, invest it in the portfolio."""
         while self.excess_cash > 0:
-            # Calculate how much to invest in this iteration
-            to_invest = min(self.excess_cash, self.investible_value)
-            spent = self.investments.buy(to_invest, self.investible_value)
+            spent = self.investments.buy(self.excess_cash, self.investible_value)
             if spent > 0:
                 self.cash_value -= spent
             else:
                 print("No more excess cash to invest. Stopping.")
                 break
+
+    def get_transactions_for_asset_class(self, asset_class: str):
+        """Get all transactions for a specific asset class."""
+        return self.transaction_log.get_transactions_for_asset_class(asset_class)
+
+    def get_transactions_for_category(self, category: str):
+        """Get all transactions for a specific category."""
+        return self.transaction_log.get_transactions_for_category(category)
 

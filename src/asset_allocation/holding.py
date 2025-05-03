@@ -56,5 +56,7 @@ class Holding:
             The proceeds of the sale, if any.
         """
         to_sell = min(self.shares, 1.0)
+        if to_sell <= 0:
+            return 0
         self.shares -= to_sell
         return to_sell * self.price 
