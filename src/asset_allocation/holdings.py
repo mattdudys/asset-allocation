@@ -1,4 +1,3 @@
-from .graph import Node
 from .quote_service import QuoteService, YFinanceQuoteService
 from typing import Union
 
@@ -7,7 +6,7 @@ class Portfolio:
     cash_value: float
     cash_target: float | None
 
-    def __init__(self, children: list[Node], cash_value: float = 0.0, cash_target: float | None = None):
+    def __init__(self, children: list[Union['AssetClass', 'AssetClassCategory']], cash_value: float = 0.0, cash_target: float | None = None):
         self.children = children
         self.cash_value = cash_value
         self.cash_target = cash_target
@@ -63,13 +62,11 @@ class Holding:
     ticker: str
     shares: float
     _quote_service: QuoteService
-    children: list  # Empty list for compatibility with Node interface
 
     def __init__(self, ticker: str, shares: float, quote_service: QuoteService | None = None):
         self.ticker = ticker
         self.shares = shares
         self._quote_service = quote_service or YFinanceQuoteService()
-        self.children = []  # Initialize empty children list
 
     @property
     def name(self):

@@ -1,5 +1,5 @@
 import unittest
-from asset_allocation import Node, AssetClass, AssetClassCategory, Portfolio, Holding
+from asset_allocation import AssetClass, AssetClassCategory, Portfolio, Holding
 from asset_allocation.quote_service import FakeQuoteService
 
 class TestAssetAllocation(unittest.TestCase):
@@ -26,17 +26,6 @@ class TestAssetAllocation(unittest.TestCase):
         self.assertEqual(holding.name, "AAPL")
         self.assertEqual(holding.shares, 10)
         self.assertEqual(holding.value, 1000.0)  # 10 shares * $100 per share
-        self.assertEqual(holding.children, [])
-
-    def test_node(self):
-        # Create leaf nodes
-        holding = Holding("AAPL", 10, quote_service=self.quote_service)
-        
-        # Create node with children
-        node = Node("Test Group", [holding])
-        self.assertEqual(node.name, "Test Group")
-        self.assertEqual(node.value, 1000.0)
-        self.assertEqual(len(node.children), 1)
 
     def test_asset_class(self):
         # Create some holdings
