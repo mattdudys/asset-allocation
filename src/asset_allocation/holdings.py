@@ -3,9 +3,13 @@ from .graph import LeafNode, InternalNode, Node
 
 class Portfolio(InternalNode):
     """A portfolio of holdings."""
+    cash_value: float
+    cash_target: float | None
 
-    def __init__(self, name: str, children: list[Node]):
+    def __init__(self, name: str, children: list[Node], cash_value: float = 0.0, cash_target: float | None = None):
         super().__init__(name, children)
+        self.cash_value = cash_value
+        self.cash_target = cash_target
 
 class AssetClass(InternalNode):
     """A group of holdings or a group of asset classes in a portfolio."""
@@ -16,15 +20,6 @@ class AssetClass(InternalNode):
             raise ValueError("target_allocation must be between 0 and 100")
         super().__init__(name, children)
         self.target_allocation = target_allocation
-
-class CashHolding(LeafNode):
-    """The cash holding in the portfolio."""
-    target_value: float | None
-
-    def __init__(self, value: float, target_value: float | None = None):
-        self.name = "Cash"
-        self.value = value
-        self.target_value = target_value
 
 class TickerHolding(LeafNode):
     """A holding in a portfolio which a ticker symbol and number of shares."""
