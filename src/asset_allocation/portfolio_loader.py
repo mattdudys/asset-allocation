@@ -49,7 +49,7 @@ class PortfolioLoader:
 
     def load(self, config_file: str, holdings_file: str) -> Portfolio:
         """Load a portfolio from configuration and holdings YAML files.
-        
+
         Args:
             config_file: Path to the YAML file containing asset class hierarchy
             holdings_file: Path to the YAML file containing current holdings
@@ -63,10 +63,10 @@ class PortfolioLoader:
 
         # Create the asset class hierarchy
         children = [
-            self._create_asset_class_or_category(
-                investment, holdings_data["holdings"]
-            )
+            self._create_asset_class_or_category(investment, holdings_data["holdings"])
             for investment in hierarchy_data["investments"]
         ]
 
-        return Portfolio(cash_value=cash_value, cash_target=cash_target, children=children)
+        return Portfolio(
+            cash_value=cash_value, cash_target=cash_target, children=children
+        )

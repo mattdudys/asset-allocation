@@ -42,7 +42,7 @@ class PortfolioSnapshotter(Visitor):
     as well as its children in a hierarchical structure.
     """
 
-    def __init__(self, portfolio: 'Portfolio'):
+    def __init__(self, portfolio: "Portfolio"):
         """Initialize the visitor.
 
         Args:
@@ -84,7 +84,9 @@ class PortfolioSnapshotter(Visitor):
                 name=asset_class.name,
                 value=asset_class.value,
                 target_weight=asset_class.target_weight,
-                actual_weight=asset_class.actual_weight(self._portfolio.investible_value),
+                actual_weight=asset_class.actual_weight(
+                    self._portfolio.investible_value
+                ),
                 fractional_deviation=asset_class.fractional_deviation(
                     self._portfolio.investible_value
                 ),

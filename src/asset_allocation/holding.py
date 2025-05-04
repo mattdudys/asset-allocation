@@ -82,10 +82,10 @@ class Holding:
 
     def visit(self, visitor: Visitor) -> Any:
         """Visit this node with a visitor.
-        
+
         Args:
             visitor: The visitor to use
-            
+
         Returns:
             The result from visiting this node
         """

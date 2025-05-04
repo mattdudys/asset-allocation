@@ -64,7 +64,7 @@ class Portfolio:
 
     def snapshot(self) -> PortfolioSnapshot:
         """Create a snapshot of the portfolio structure and values.
-        
+
         Returns:
             A PortfolioSnapshot containing the portfolio's data and its hierarchical structure
         """
