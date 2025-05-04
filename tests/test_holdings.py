@@ -3,6 +3,7 @@ from asset_allocation.holding import Holding
 from asset_allocation.quote_service import FakeQuoteService
 from asset_allocation.transaction import BuySell
 
+
 class TestHolding(unittest.TestCase):
     def test_holding_creation_sets_basic_properties(self):
         holding = Holding("AAPL", 10, price=100.0)
@@ -74,21 +75,21 @@ class TestHolding(unittest.TestCase):
 
     def test_holding_sell_multiple_times(self):
         holding = Holding("AAPL", 2.5, price=100.0)
-        
+
         transaction1 = holding.sell()
         self.assertIsNotNone(transaction1)
         self.assertEqual(transaction1.type, BuySell.SELL)
         self.assertEqual(transaction1.shares, 1.0)
         self.assertEqual(holding.shares, 1.5)
-        
+
         transaction2 = holding.sell()
         self.assertIsNotNone(transaction2)
         self.assertEqual(transaction2.type, BuySell.SELL)
         self.assertEqual(transaction2.shares, 1.0)
         self.assertEqual(holding.shares, 0.5)
-        
+
         transaction3 = holding.sell()
         self.assertIsNotNone(transaction3)
         self.assertEqual(transaction3.type, BuySell.SELL)
         self.assertEqual(transaction3.shares, 0.5)
-        self.assertEqual(holding.shares, 0) 
+        self.assertEqual(holding.shares, 0)

@@ -3,12 +3,16 @@ from typing import Optional, Union
 from asset_allocation.transaction import Transaction
 from .holding import Holding
 
+
 class AssetClassCategory:
     """A category that can contain other asset classes or categories."""
-    name: str
-    children: list[Union['AssetClass', 'AssetClassCategory']]
 
-    def __init__(self, name: str, children: list[Union['AssetClass', 'AssetClassCategory']]):
+    name: str
+    children: list[Union["AssetClass", "AssetClassCategory"]]
+
+    def __init__(
+        self, name: str, children: list[Union["AssetClass", "AssetClassCategory"]]
+    ):
         if not children:
             raise ValueError("AssetClassCategory must have at least one child")
         self.name = name
@@ -24,10 +28,10 @@ class AssetClassCategory:
 
     def actual_weight(self, total_portfolio_value: float) -> float:
         """Calculate the actual weight of this category in the portfolio.
-        
+
         Args:
             total_portfolio_value: the investable, non-cash value of the portfolio
-            
+
         Returns:
             The ratio of this category's value to the total portfolio value
         """
@@ -37,10 +41,10 @@ class AssetClassCategory:
 
     def fractional_deviation(self, total_portfolio_value: float) -> float:
         """Calculate how much this category deviates from its target weight.
-        
+
         Args:
             total_portfolio_value: the investable, non-cash value of the portfolio
-            
+
         Returns:
             The fractional deviation from target weight. Positive means overweight,
             negative means underweight. For example, 0.1 means 10% overweight,
@@ -60,13 +64,15 @@ class AssetClassCategory:
             A Transaction if there was enough budget, otherwise None
         """
         # Create a copy of the children list and sort it by fractional deviation ascending.
-        children = sorted(self.children, key=lambda x: x.fractional_deviation(total_portfolio_value))
+        children = sorted(
+            self.children, key=lambda x: x.fractional_deviation(total_portfolio_value)
+        )
         for child in children:
             transaction = child.buy(budget, total_portfolio_value)
             if transaction:
                 return transaction
         return None
-    
+
     def sell(self, total_portfolio_value: float) -> Optional[Transaction]:
         """Identifies the most overweight child asset class and attempts to sell one share of an underlying holding.
 
@@ -76,21 +82,27 @@ class AssetClassCategory:
             A Transaction if there was a share to sell, otherwise None
         """
         # Create a copy of the children list and sort it by fractional deviation descending.
-        children = sorted(self.children, key=lambda x: x.fractional_deviation(total_portfolio_value), reverse=True)
+        children = sorted(
+            self.children,
+            key=lambda x: x.fractional_deviation(total_portfolio_value),
+            reverse=True,
+        )
         for child in children:
             transaction = child.sell()
             if transaction:
                 return transaction
         return None
 
+
 class AssetClass:
     """A group of holdings in a portfolio.
-    
+
     The holdings are in preference order:
     - When buying more of this asset class, we will buy more of the first holding
     - When selling from this asset class, we will sell from the last holding first,
       then the second-to-last, and so on
     """
+
     name: str
     target_weight: float
     holdings: list[Holding]
@@ -110,10 +122,10 @@ class AssetClass:
 
     def actual_weight(self, total_portfolio_value: float) -> float:
         """Calculate the actual weight of this asset class in the portfolio.
-        
+
         Args:
             total_portfolio_value: the investable, non-cash value of the portfolio
-            
+
         Returns:
             The ratio of this asset class's value to the total portfolio value
         """
@@ -123,10 +135,10 @@ class AssetClass:
 
     def fractional_deviation(self, total_portfolio_value: float) -> float:
         """Calculate how much this asset class deviates from its target weight.
-        
+
         Args:
             total_portfolio_value: the investable, non-cash value of the portfolio
-            
+
         Returns:
             The fractional deviation from target weight. Positive means overweight,
             negative means underweight. For example, 0.1 means 10% overweight,
@@ -138,11 +150,11 @@ class AssetClass:
 
     def buy(self, budget: float, total_portfolio_value: float) -> Optional[Transaction]:
         """Buy one share of this asset class's preferred holding if there is enough budget.
-        
+
         Args:
             budget: the amount of money to spend
             total_portfolio_value: the investable, non-cash value of the portfolio
-            
+
         Returns:
             A Transaction if there was enough budget, otherwise None
         """
@@ -150,7 +162,7 @@ class AssetClass:
 
     def sell(self) -> Optional[Transaction]:
         """Sell one share of this asset class's least preferred holding, or a fractional share if less than one share.
-        
+
         Returns:
             A Transaction if there was a share to sell, otherwise None
         """
