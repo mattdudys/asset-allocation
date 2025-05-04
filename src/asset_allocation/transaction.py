@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 from enum import Enum
+import pandas as pd
 
 
 class BuySell(Enum):
@@ -25,24 +26,11 @@ class TransactionLog:
     def __init__(self):
         self.transactions: List[Transaction] = []
 
-    def log_buy(self, ticker: str, shares: float, price: float) -> None:
-        """Log a buy transaction."""
-        transaction = Transaction(
-            type=BuySell.BUY,
-            ticker=ticker,
-            shares=shares,
-            price=price,
-            amount=shares * price,
-        )
+    def __iter__(self):
+        return iter(self.transactions)
+
+    def append(self, transaction: Transaction):
         self.transactions.append(transaction)
 
-    def log_sell(self, ticker: str, shares: float, price: float) -> None:
-        """Log a sell transaction."""
-        transaction = Transaction(
-            type=BuySell.SELL,
-            ticker=ticker,
-            shares=shares,
-            price=price,
-            amount=shares * price,
-        )
-        self.transactions.append(transaction)
+    def to_dataframe(self):
+        return pd.DataFrame(self.transactions)

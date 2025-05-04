@@ -1,4 +1,6 @@
 from typing import Union, List
+
+from asset_allocation.transaction import TransactionLog
 from .asset_class import AssetClass, AssetClassCategory
 
 
@@ -47,12 +49,15 @@ class Portfolio:
         """The value of the portfolio's investments and excess cash."""
         return self.investments.value + self.excess_cash
 
-    def invest_excess_cash(self) -> None:
+    def invest_excess_cash(self) -> TransactionLog:
         """While there is excess cash, invest it in the portfolio."""
+        transactions = TransactionLog()
         while self.excess_cash > 0:
             transaction = self.investments.buy(self.excess_cash, self.investible_value)
             if transaction:
                 self.cash_value -= transaction.amount
+                transactions.append(transaction)
             else:
                 print("No more excess cash to invest. Stopping.")
                 break
+        return transactions
