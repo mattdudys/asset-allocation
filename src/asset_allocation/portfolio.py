@@ -2,6 +2,7 @@ from typing import Union, List
 
 from asset_allocation.transaction import TransactionLog
 from .asset_class import AssetClass, AssetClassCategory
+from .snapshot import PortfolioSnapshot, PortfolioSnapshotter
 
 
 class Portfolio:
@@ -60,3 +61,13 @@ class Portfolio:
             else:
                 break
         return transactions
+
+    def snapshot(self) -> PortfolioSnapshot:
+        """Create a snapshot of the portfolio structure and values.
+        
+        Returns:
+            A PortfolioSnapshot containing the portfolio's data and its hierarchical structure
+        """
+        visitor = PortfolioSnapshotter(self)
+        self.investments.visit(visitor)
+        return visitor.snapshot

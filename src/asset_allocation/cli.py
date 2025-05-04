@@ -2,10 +2,18 @@
 
 import argparse
 
+import pandas as pd
+
 from asset_allocation.quote_service import YFinanceQuoteService
-from .portfolio import Portfolio
+from asset_allocation.snapshot import PortfolioSnapshot
+from asset_allocation.transaction import TransactionLog
 from .portfolio_loader import PortfolioLoader
 
+def print_snapshot(snapshot: PortfolioSnapshot):
+    print(pd.DataFrame(snapshot.asset_classes))
+
+def print_transaction_log(transaction_log: TransactionLog):
+    print(transaction_log.to_dataframe().groupby(["type", "ticker", "price"]).sum())
 
 def main():
     """Main entry point for the CLI."""
@@ -19,13 +27,15 @@ def main():
         loader = PortfolioLoader(YFinanceQuoteService())
         portfolio = loader.load(args.config, args.holdings)
         print(f"Loaded portfolio with value: ${portfolio.value:,.2f}")
+        starting_snapshot = portfolio.snapshot()
         
         if args.invest_excess_cash:
-            starting_cash = portfolio.cash_value
+            print_snapshot(starting_snapshot)
             transaction_log = portfolio.invest_excess_cash()
-            ending_cash = portfolio.cash_value
-            print(f"Invested ${starting_cash - ending_cash:,.2f} of excess cash")
-            print(transaction_log.to_dataframe().groupby(["type", "ticker", "price"]).sum())
+            ending_snapshot = portfolio.snapshot()
+            print(f"Invested ${starting_snapshot.cash - ending_snapshot.cash:,.2f} of excess cash")
+            print_transaction_log(transaction_log)
+            print_snapshot(ending_snapshot)
     else:
         print("Please provide both --config and --holdings files")
 

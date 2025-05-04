@@ -1,6 +1,7 @@
-from typing import Optional
+from typing import Optional, Any
 from asset_allocation.transaction import BuySell, Transaction
 from .quote_service import QuoteService
+from .visitor import Visitor
 
 
 class Holding:
@@ -78,3 +79,14 @@ class Holding:
             price=self.price,
             amount=to_sell * self.price,
         )
+
+    def visit(self, visitor: Visitor) -> Any:
+        """Visit this node with a visitor.
+        
+        Args:
+            visitor: The visitor to use
+            
+        Returns:
+            The result from visiting this node
+        """
+        return visitor.visit_holding(self)

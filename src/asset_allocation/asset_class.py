@@ -1,7 +1,8 @@
-from typing import Optional, Union
+from typing import Optional, Union, Any
 
 from asset_allocation.transaction import Transaction
 from .holding import Holding
+from .visitor import Visitor
 
 
 class AssetClassCategory:
@@ -17,6 +18,20 @@ class AssetClassCategory:
             raise ValueError("AssetClassCategory must have at least one child")
         self.name = name
         self.children = children
+
+    def visit(self, visitor: Visitor) -> Any:
+        """Visit this node with a visitor.
+        
+        Args:
+            visitor: The visitor to use
+            
+        Returns:
+            The result from visiting this node
+        """
+        result = visitor.visit_asset_class_category(self)
+        for child in self.children:
+            child.visit(visitor)
+        return result
 
     @property
     def value(self):
@@ -115,6 +130,20 @@ class AssetClass:
         self.name = name
         self.target_weight = target_weight
         self.holdings = holdings
+
+    def visit(self, visitor: Visitor) -> Any:
+        """Visit this node with a visitor.
+        
+        Args:
+            visitor: The visitor to use
+            
+        Returns:
+            The result from visiting this node
+        """
+        result = visitor.visit_asset_class(self)
+        for holding in self.holdings:
+            holding.visit(visitor)
+        return result
 
     @property
     def value(self):
