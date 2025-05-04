@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "asset-allocation"
+version = "0.1.0"
+description = "A tool for managing investment portfolio asset allocation"
+authors = ["Matthew Dudys <mattdudys@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/mattdudys/asset-allocation"
+packages = [{ include = "asset_allocation", from = "src" }]
+
+[tool.poetry.dependencies]
+python = ">=3.9"
+pandas = "*"
+yfinance = "*"
+PyYAML = "*"
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^3.6.0"
+
+[tool.poetry.scripts]
+asset-allocation = "asset_allocation.cli:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py39']
+include = '\.pyi?$' 
