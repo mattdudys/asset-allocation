@@ -58,6 +58,5 @@ class Portfolio:
                 self.cash_value -= transaction.amount
                 transactions.append(transaction)
             else:
-                print("No more excess cash to invest. Stopping.")
                 break
         return transactions

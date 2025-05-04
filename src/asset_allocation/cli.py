@@ -12,7 +12,7 @@ def main():
     parser = argparse.ArgumentParser(description="Asset Allocation Portfolio Manager")
     parser.add_argument("--config", help="Path to asset class hierarchy YAML file")
     parser.add_argument("--holdings", help="Path to current holdings YAML file")
-    parser.add_argument("--rebalance", action="store_true", help="Rebalance the portfolio")
+    parser.add_argument("--invest-excess-cash", action="store_true", help="Invest excess cash according to target allocations")
     args = parser.parse_args()
 
     if args.config and args.holdings:
@@ -20,9 +20,12 @@ def main():
         portfolio = loader.load(args.config, args.holdings)
         print(f"Loaded portfolio with value: ${portfolio.value:,.2f}")
         
-        if args.rebalance:
-            print("Rebalancing portfolio...")
-            # TODO: Implement rebalancing logic
+        if args.invest_excess_cash:
+            starting_cash = portfolio.cash_value
+            transaction_log = portfolio.invest_excess_cash()
+            ending_cash = portfolio.cash_value
+            print(f"Invested ${starting_cash - ending_cash:,.2f} of excess cash")
+            print(transaction_log.to_dataframe().groupby(["type", "ticker", "price"]).sum())
     else:
         print("Please provide both --config and --holdings files")
 
