@@ -1,5 +1,5 @@
 import unittest
-from asset_allocation.portfolio_loader import load_portfolio
+from asset_allocation.portfolio_loader import PortfolioLoader
 from asset_allocation.quote_service import FakeQuoteService
 
 
@@ -19,12 +19,12 @@ class TestPortfolioLoader(unittest.TestCase):
                 "BWX": 100.0,
             }
         )
+        self.loader = PortfolioLoader(self.quote_service)
 
     def test_load_portfolio(self):
-        portfolio = load_portfolio(
-            "data/portfolio_hierarchy.yaml",
+        portfolio = self.loader.load(
+            "data/portfolio_config.yaml",
             "data/portfolio_holdings.yaml",
-            self.quote_service,
         )
 
         # Test basic portfolio properties
