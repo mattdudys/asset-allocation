@@ -11,18 +11,31 @@ from .portfolio_loader import PortfolioLoader
 
 
 def print_snapshot(snapshot: PortfolioSnapshot):
-    print(pd.DataFrame(snapshot.asset_classes))
+    df = pd.DataFrame(snapshot.asset_classes)
+    # Format value column as currency.
+    df["value"] = df["value"].apply(lambda x: f"${x:,.2f}")
+    # Format target weight, actual weight, and fractional deviation columns as percentages.
+    df["target_weight"] = df["target_weight"].apply(lambda x: f"{x:.2%}")
+    df["actual_weight"] = df["actual_weight"].apply(lambda x: f"{x:.2%}")
+    df["fractional_deviation"] = df["fractional_deviation"].apply(lambda x: f"{x:.2%}")
+    print(df.to_string(index=False))
 
 
 def print_transaction_log(transaction_log: TransactionLog):
-    print(transaction_log.to_dataframe().groupby(["type", "ticker", "price"]).sum())
+    df = transaction_log.to_dataframe()
+    if df:
+        print(df.groupby(["type", "ticker", "price"]).sum())
 
 
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(description="Asset Allocation Portfolio Manager")
-    parser.add_argument("--config", help="Path to asset class hierarchy YAML file")
-    parser.add_argument("--holdings", help="Path to current holdings YAML file")
+    parser.add_argument(
+        "--config", help="Path to asset class hierarchy YAML file", required=True
+    )
+    parser.add_argument(
+        "--holdings", help="Path to current holdings YAML file", required=True
+    )
     parser.add_argument(
         "--invest-excess-cash",
         action="store_true",
@@ -30,23 +43,28 @@ def main():
     )
     args = parser.parse_args()
 
-    if args.config and args.holdings:
-        loader = PortfolioLoader(YFinanceQuoteService())
-        portfolio = loader.load(args.config, args.holdings)
-        print(f"Loaded portfolio with value: ${portfolio.value:,.2f}")
-        starting_snapshot = portfolio.snapshot()
+    loader = PortfolioLoader(YFinanceQuoteService())
+    portfolio = loader.load(args.config, args.holdings)
+    print(f"Portfolio:")
+    print(f"  Total value: ${portfolio.value:,.2f}")
+    print(f"  Investible value: ${portfolio.investible_value:,.2f}")
+    print(f"  Cash: ${portfolio.cash_value:,.2f}")
+    print(f"  Excess cash: ${portfolio.excess_cash:,.2f}")
+    starting_snapshot = portfolio.snapshot()
+    print_snapshot(starting_snapshot)
+    print()
 
-        if args.invest_excess_cash:
-            print_snapshot(starting_snapshot)
-            transaction_log = portfolio.invest_excess_cash()
+    if args.invest_excess_cash:
+        transaction_log = portfolio.invest_excess_cash()
+        if transaction_log.empty:
+            print("Not enough excess cash to invest. No transactions were made.")
+        else:
             ending_snapshot = portfolio.snapshot()
             print(
                 f"Invested ${starting_snapshot.cash - ending_snapshot.cash:,.2f} of excess cash"
             )
             print_transaction_log(transaction_log)
             print_snapshot(ending_snapshot)
-    else:
-        print("Please provide both --config and --holdings files")
 
 
 if __name__ == "__main__":

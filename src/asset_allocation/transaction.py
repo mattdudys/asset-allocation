@@ -32,5 +32,8 @@ class TransactionLog:
     def append(self, transaction: Transaction):
         self.transactions.append(transaction)
 
+    def empty(self):
+        return len(self.transactions) == 0
+
     def to_dataframe(self):
         return pd.DataFrame(self.transactions)
