@@ -164,6 +164,61 @@ class TestAssetClass(unittest.TestCase):
         self.assertEqual(asset_class.value, 2000.0)  # 1000 + 1000
         self.assertEqual(asset_class.actual_weight(4000.0), 0.5)  # 2000/4000 = 0.5
 
+    def test_asset_class_rebalance_band_large(self):
+        holding = Holding("AAPL", 10, price=100.0)
+        asset_class = AssetClass("US Equity", target_weight=0.4, holdings=[holding])
+        self.assertEqual(asset_class.rebalance_band, 0.05)
+
+    def test_asset_class_rebalance_band_small(self):
+        holding = Holding("AAPL", 10, price=100.0)
+        asset_class = AssetClass("US Equity", target_weight=0.1, holdings=[holding])
+        self.assertEqual(asset_class.rebalance_band, 0.025)  # 0.1 * 0.25 = 0.025
+
+    def test_asset_class_overweight_true(self):
+        holding = Holding("AAPL", 50, price=100.0)  # 5000
+        asset_class = AssetClass("US Equity", target_weight=0.4, holdings=[holding])
+        # Upper bound is 40% + 5% = 45%
+        # 5000/10000 = 50% > 45%, overweight
+        self.assertEqual(asset_class.rebalance_band, 0.05)
+        self.assertTrue(
+            asset_class.overweight(10000.0),
+            "50% is considered overweight when target is 40%",
+        )
+
+    def test_asset_class_overweight_false(self):
+        holding = Holding("AAPL", 43, price=100.0)  # 4300
+        asset_class = AssetClass("US Equity", target_weight=0.4, holdings=[holding])
+        # Upper bound is 40% + 5% = 45%
+        # 4300/10000 = 43% < 45%, not overweight
+        self.assertFalse(
+            asset_class.overweight(10000.0),
+            "43% is not considered overweight when target is 40%",
+        )
+
+    def test_asset_class_underweight_true(self):
+        holding = Holding("VWO", 4, price=100.0)  # 400
+        asset_class = AssetClass(
+            "Emerging Markets", target_weight=0.06, holdings=[holding]
+        )
+        # Lower bound is 6% - (25% * 6%) = 4.5%
+        # 400/10000 = 4% < 4.5%, underweight
+        self.assertTrue(
+            asset_class.underweight(10000.0),
+            "4% is considered underweight when target is 6%",
+        )
+
+    def test_asset_class_underweight_false(self):
+        holding = Holding("VWO", 5, price=100.0)  # 500
+        asset_class = AssetClass(
+            "Emerging Markets", target_weight=0.06, holdings=[holding]
+        )
+        # Lower bound is 6% - (25% * 6%) = 4.5%
+        # 500/10000 = 5% > 4.5%, not underweight
+        self.assertFalse(
+            asset_class.underweight(10000.0),
+            "5% is not considered underweight when target is 6%",
+        )
+
 
 class TestAssetClassCategory(unittest.TestCase):
     def test_category_creation_sets_basic_properties(self):

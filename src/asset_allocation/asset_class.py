@@ -177,6 +177,57 @@ class AssetClass:
             raise ValueError("total_portfolio_value must be positive")
         return (self.actual_weight(total_portfolio_value) / self.target_weight) - 1
 
+    @property
+    def rebalance_band(self) -> float:
+        """How much overweight or underweight this asset class can be before we need to rebalance.
+
+        We follow a 5/25 rule: consider rebalancing if the weight deviates by an absolute 5% or a relative 25%.
+
+        Returns:
+            A multiplier to apply to the target weight to get the rebalance band.
+        """
+        return min(0.05, self.target_weight * 0.25)
+
+    @property
+    def min_target_weight(self) -> float:
+        """Calculate the lower bound of the desired weight.
+
+        Returns:
+            The lower bound of the desired weight
+        """
+        return self.target_weight - self.rebalance_band
+
+    @property
+    def max_target_weight(self) -> float:
+        """Calculate the upper bound of the desired weight.
+
+        Returns:
+            The upper bound of the desired weight
+        """
+        return self.target_weight + self.rebalance_band
+
+    def overweight(self, total_portfolio_value: float) -> bool:
+        """Check if this asset class is overweight.
+
+        Args:
+            total_portfolio_value: the investable, non-cash value of the portfolio
+
+        Returns:
+            True if this asset class is overweight, False otherwise
+        """
+        return self.actual_weight(total_portfolio_value) > self.max_target_weight
+
+    def underweight(self, total_portfolio_value: float) -> bool:
+        """Check if this asset class is underweight.
+
+        Args:
+            total_portfolio_value: the investable, non-cash value of the portfolio
+
+        Returns:
+            True if this asset class is underweight, False otherwise
+        """
+        return self.actual_weight(total_portfolio_value) < self.min_target_weight
+
     def buy(self, budget: float, total_portfolio_value: float) -> Optional[Transaction]:
         """Buy one share of this asset class's preferred holding if there is enough budget.
 
