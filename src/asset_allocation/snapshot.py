@@ -15,6 +15,8 @@ class AssetClassSnapshot:
     target_weight: float
     actual_weight: float
     fractional_deviation: float
+    underweight: bool
+    overweight: bool
 
 
 @dataclass
@@ -72,6 +74,8 @@ class PortfolioSnapshotter(Visitor):
                 fractional_deviation=asset_class.fractional_deviation(
                     self._portfolio.investible_value
                 ),
+                underweight=asset_class.underweight(self._portfolio.investible_value),
+                overweight=asset_class.overweight(self._portfolio.investible_value),
             )
         )
 

@@ -18,6 +18,8 @@ def print_snapshot(snapshot: PortfolioSnapshot):
     df["target_weight"] = df["target_weight"].apply(lambda x: f"{x:.2%}")
     df["actual_weight"] = df["actual_weight"].apply(lambda x: f"{x:.2%}")
     df["fractional_deviation"] = df["fractional_deviation"].apply(lambda x: f"{x:.2%}")
+    df["underweight"] = df["underweight"].apply(lambda x: "X" if x else "")
+    df["overweight"] = df["overweight"].apply(lambda x: "X" if x else "")
     print(df.to_string(index=False))
 
 
