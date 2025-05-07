@@ -7,7 +7,7 @@ investments:
     target_weight: 0.3
     holdings: ["SAP", "ASML"]
   - name: Fixed Income
-    categories:
+    asset_classes:
       - name: US Bonds
         target_weight: 0.14  # 0.7 * 0.2
         holdings: ["AGG", "BND"]

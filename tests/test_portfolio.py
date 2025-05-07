@@ -1,6 +1,6 @@
 import unittest
 from asset_allocation.holding import Holding
-from asset_allocation.asset_class import AssetClass, AssetClassCategory
+from asset_allocation.asset_class import CompositeAssetClass, LeafAssetClass
 from asset_allocation.portfolio import Portfolio
 
 
@@ -15,7 +15,7 @@ class TestPortfolio(unittest.TestCase):
 
     def test_portfolio_with_cash_target(self):
         holding = Holding("AAPL", 10, price=100.0)
-        asset_class = AssetClass("US Equity", target_weight=1.0, holdings=[holding])
+        asset_class = LeafAssetClass("US Equity", target_weight=1.0, children=[holding])
         portfolio = Portfolio(
             cash_value=1000.0, cash_target=0.2, children=[asset_class]
         )
@@ -25,14 +25,14 @@ class TestPortfolio(unittest.TestCase):
 
     def test_portfolio_value_sums_children_and_cash(self):
         holding = Holding("AAPL", 10, price=100.0)
-        asset_class = AssetClass("US Equity", target_weight=1.0, holdings=[holding])
+        asset_class = LeafAssetClass("US Equity", target_weight=1.0, children=[holding])
         portfolio = Portfolio(cash_value=1000.0, children=[asset_class])
 
         self.assertEqual(portfolio.value, 2000.0)  # 1000 (cash) + 1000 (holdings)
 
     def test_portfolio_rejects_invalid_target_weights(self):
         holding = Holding("AAPL", 10, price=100.0)
-        asset_class = AssetClass("US Equity", target_weight=0.4, holdings=[holding])
+        asset_class = LeafAssetClass("US Equity", target_weight=0.4, children=[holding])
         with self.assertRaises(ValueError) as cm:
             Portfolio(children=[asset_class])
         self.assertEqual(
@@ -42,15 +42,15 @@ class TestPortfolio(unittest.TestCase):
     def test_portfolio_with_nested_categories(self):
         holding1 = Holding("AAPL", 10, price=100.0)
         holding2 = Holding("MSFT", 10, price=100.0)
-        us_equity = AssetClass("US Equity", target_weight=0.4, holdings=[holding1])
-        intl_equity = AssetClass(
-            "International Equity", target_weight=0.2, holdings=[holding2]
+        us_equity = LeafAssetClass("US Equity", target_weight=0.4, children=[holding1])
+        intl_equity = LeafAssetClass(
+            "International Equity", target_weight=0.2, children=[holding2]
         )
-        equity = AssetClassCategory("Equity", [us_equity, intl_equity])
+        equity = CompositeAssetClass("Equity", [us_equity, intl_equity])
 
         holding3 = Holding("AGG", 10, price=100.0)
-        fixed_income = AssetClass(
-            "Fixed Income", target_weight=0.4, holdings=[holding3]
+        fixed_income = LeafAssetClass(
+            "Fixed Income", target_weight=0.4, children=[holding3]
         )
 
         portfolio = Portfolio(cash_value=1000.0, children=[equity, fixed_income])
@@ -59,7 +59,7 @@ class TestPortfolio(unittest.TestCase):
 
     def test_excess_cash_calculation(self):
         holding = Holding("AAPL", 10, price=100.0)
-        asset_class = AssetClass("US Equity", target_weight=1.0, holdings=[holding])
+        asset_class = LeafAssetClass("US Equity", target_weight=1.0, children=[holding])
         portfolio = Portfolio(
             cash_value=1000.0, cash_target=500.0, children=[asset_class]
         )
@@ -68,7 +68,7 @@ class TestPortfolio(unittest.TestCase):
 
     def test_excess_cash_with_no_target(self):
         holding = Holding("AAPL", 10, price=100.0)
-        asset_class = AssetClass("US Equity", target_weight=1.0, holdings=[holding])
+        asset_class = LeafAssetClass("US Equity", target_weight=1.0, children=[holding])
         portfolio = Portfolio(
             cash_value=1000.0, cash_target=None, children=[asset_class]
         )
@@ -79,7 +79,7 @@ class TestPortfolio(unittest.TestCase):
 
     def test_excess_cash_below_target(self):
         holding = Holding("AAPL", 10, price=100.0)
-        asset_class = AssetClass("US Equity", target_weight=1.0, holdings=[holding])
+        asset_class = LeafAssetClass("US Equity", target_weight=1.0, children=[holding])
         portfolio = Portfolio(
             cash_value=300.0, cash_target=500.0, children=[asset_class]
         )
@@ -88,7 +88,7 @@ class TestPortfolio(unittest.TestCase):
 
     def test_investible_value(self):
         holding = Holding("AAPL", 10, price=100.0)
-        asset_class = AssetClass("US Equity", target_weight=1.0, holdings=[holding])
+        asset_class = LeafAssetClass("US Equity", target_weight=1.0, children=[holding])
         portfolio = Portfolio(
             cash_value=1000.0, cash_target=500.0, children=[asset_class]
         )
@@ -98,7 +98,7 @@ class TestPortfolio(unittest.TestCase):
 
     def test_invest_excess_cash(self):
         holding = Holding("AAPL", 10, price=100.0)
-        asset_class = AssetClass("US Equity", target_weight=1.0, holdings=[holding])
+        asset_class = LeafAssetClass("US Equity", target_weight=1.0, children=[holding])
         portfolio = Portfolio(
             cash_value=1000.0, cash_target=500.0, children=[asset_class]
         )
@@ -114,7 +114,7 @@ class TestPortfolio(unittest.TestCase):
 
     def test_invest_excess_cash_with_no_target(self):
         holding = Holding("AAPL", 10, price=100.0)
-        asset_class = AssetClass("US Equity", target_weight=1.0, holdings=[holding])
+        asset_class = LeafAssetClass("US Equity", target_weight=1.0, children=[holding])
         portfolio = Portfolio(
             cash_value=1000.0, cash_target=None, children=[asset_class]
         )

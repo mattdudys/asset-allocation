@@ -1,7 +1,7 @@
 from typing import Dict, List, Union
 import yaml
 from .portfolio import Portfolio
-from .asset_class import AssetClass, AssetClassCategory
+from .asset_class import AssetClass, CompositeAssetClass, LeafAssetClass
 from .holding import Holding
 from .quote_service import QuoteService, FakeQuoteService
 
@@ -22,22 +22,20 @@ class PortfolioLoader:
         with open(holdings_file, "r") as f:
             return yaml.safe_load(f)
 
-    def _create_asset_class_or_category(
-        self, data: dict, holdings: Dict[str, int]
-    ) -> Union[AssetClass, AssetClassCategory]:
-        """Create an AssetClass or AssetClassCategory from the hierarchy data."""
+    def _create_asset_class(self, data: dict, holdings: Dict[str, int]) -> AssetClass:
+        """Create an AssetClass from the hierarchy data."""
         name = data["name"]
 
-        # If this is a category (has subcategories)
-        if "categories" in data:
+        # If this is a composite node (has subcategories)
+        if "asset_classes" in data:
             children = [
-                self._create_asset_class_or_category(child, holdings)
-                for child in data["categories"]
+                self._create_asset_class(child, holdings)
+                for child in data["asset_classes"]
             ]
-            return AssetClassCategory(name, children)
+            return CompositeAssetClass(name, children)
 
-        # Otherwise it's an asset class with holdings
-        target_weight = data["target_weight"]  # Only leaf nodes have target weights
+        # Otherwise it's a leaf node with holdings
+        target_weight = data["target_weight"]
         holding_objects = []
         for ticker in data["holdings"]:
             if ticker in holdings:
@@ -45,7 +43,7 @@ class PortfolioLoader:
                 price = self.quote_service.get_price(ticker)
                 holding_objects.append(Holding(ticker, shares, price))
 
-        return AssetClass(name, target_weight, holding_objects)
+        return LeafAssetClass(name, target_weight, holding_objects)
 
     def load(self, config_file: str, holdings_file: str) -> Portfolio:
         """Load a portfolio from configuration and holdings YAML files.
@@ -63,7 +61,7 @@ class PortfolioLoader:
 
         # Create the asset class hierarchy
         children = [
-            self._create_asset_class_or_category(investment, holdings_data["holdings"])
+            self._create_asset_class(investment, holdings_data["holdings"])
             for investment in hierarchy_data["investments"]
         ]
 

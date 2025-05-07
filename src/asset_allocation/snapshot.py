@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 
-from .asset_class import AssetClass, AssetClassCategory
+from .asset_class import AssetClass
 from .holding import Holding
 from .visitor import Visitor
 
@@ -53,24 +53,6 @@ class PortfolioSnapshotter(Visitor):
             cash=portfolio.cash_value,
             asset_classes=[],
             holdings=[],
-        )
-
-    def visit_asset_class_category(self, category: AssetClassCategory) -> None:
-        """Record a snapshot of the AssetClassCategory node.
-
-        Args:
-            category: The AssetClassCategory node being visited
-        """
-        self.snapshot.asset_classes.append(
-            AssetClassSnapshot(
-                name=category.name,
-                value=category.value,
-                target_weight=category.target_weight,
-                actual_weight=category.actual_weight(self._portfolio.investible_value),
-                fractional_deviation=category.fractional_deviation(
-                    self._portfolio.investible_value
-                ),
-            )
         )
 
     def visit_asset_class(self, asset_class: AssetClass) -> None:

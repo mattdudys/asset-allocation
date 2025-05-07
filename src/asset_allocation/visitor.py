@@ -6,21 +6,8 @@ class Visitor(ABC):
     """Abstract base class for visitors that traverse the asset allocation structure.
 
     This visitor pattern allows for different operations to be performed on the
-    hierarchical structure of AssetClassCategory, AssetClass, and Holding nodes
-    without modifying their classes.
+    hierarchical structure of AssetClass and Holding nodes without modifying their classes.
     """
-
-    @abstractmethod
-    def visit_asset_class_category(self, category: "AssetClassCategory") -> Any:
-        """Visit an AssetClassCategory node.
-
-        Args:
-            category: The AssetClassCategory node being visited
-
-        Returns:
-            Any result from visiting this node
-        """
-        pass
 
     @abstractmethod
     def visit_asset_class(self, asset_class: "AssetClass") -> Any:

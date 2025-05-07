@@ -32,15 +32,7 @@ class TestPortfolioLoader(unittest.TestCase):
         self.assertEqual(portfolio.cash_target, 2000.0)
 
         # Test that all holdings were loaded
-        total_holdings = 0
-        for investment in portfolio.investments.children:
-            if hasattr(investment, "holdings"):
-                total_holdings += len(investment.holdings)
-            elif hasattr(investment, "children"):
-                for child in investment.children:
-                    total_holdings += len(child.holdings)
-
-        self.assertEqual(total_holdings, 9)  # Total number of holdings in our test data
+        self.assertEqual(len(portfolio.investments.holdings), 9)
 
 
 if __name__ == "__main__":

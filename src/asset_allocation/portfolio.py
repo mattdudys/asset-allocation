@@ -1,7 +1,7 @@
 from typing import Union, List
 
 from asset_allocation.transaction import TransactionLog
-from .asset_class import AssetClass, AssetClassCategory
+from .asset_class import AssetClass, CompositeAssetClass
 from .snapshot import PortfolioSnapshot, PortfolioSnapshotter
 
 
@@ -10,19 +10,19 @@ class Portfolio:
 
     cash_value: float
     cash_target: float
-    investments: AssetClassCategory
+    investments: AssetClass
 
     def __init__(
         self,
         cash_value: float = 0.0,
         cash_target: float = 0.0,
-        children: List[Union[AssetClass, AssetClassCategory]] = None,
+        children: List[AssetClass] = None,
     ):
         self.cash_value = cash_value
         self.cash_target = cash_target
         if not children:
             raise ValueError("Portfolio must have at least one asset class or category")
-        self.investments = AssetClassCategory("Total", children)
+        self.investments = CompositeAssetClass("Total", children)
         self._validate_target_weights()
 
     def _validate_target_weights(self):
