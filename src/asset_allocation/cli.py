@@ -11,6 +11,10 @@ from .portfolio_loader import PortfolioLoader
 
 
 def print_snapshot(snapshot: PortfolioSnapshot):
+    print(f"Total value: ${snapshot.value:,.2f}")
+    print(f"Investible value: ${snapshot.investible_value:,.2f}")
+    print(f"Cash: ${snapshot.cash:,.2f}")
+    print(f"Excess cash: ${snapshot.excess_cash:,.2f}")
     df = pd.DataFrame(snapshot.asset_classes)
     # Format value column as currency.
     df["value"] = df["value"].apply(lambda x: f"${x:,.2f}")
@@ -27,7 +31,10 @@ def print_transaction_log(transaction_log: TransactionLog):
     df = transaction_log.to_dataframe()
     if not df.empty:
         print("Transactions:")
-        print(df.groupby(["type", "ticker", "price"]).sum())
+        df["price"] = df["price"].apply(lambda x: f"${x:,.2f}")
+        df = df.groupby(["type", "ticker", "price"]).sum()
+        df["amount"] = df["amount"].apply(lambda x: f"${x:,.2f}")
+        print(df)
 
 
 def main():
@@ -48,15 +55,10 @@ def main():
 
     loader = PortfolioLoader(YFinanceQuoteService())
     portfolio = loader.load(args.config, args.holdings)
-    print(f"Portfolio:")
-    print(f"  Total value: ${portfolio.value:,.2f}")
-    print(f"  Investible value: ${portfolio.investible_value:,.2f}")
-    print(f"  Cash: ${portfolio.cash_value:,.2f}")
-    print(f"  Excess cash: ${portfolio.excess_cash:,.2f}")
     starting_snapshot = portfolio.snapshot()
 
     if args.invest_excess_cash:
-        print("Before:")
+        print("=== Before ===")
         print_snapshot(starting_snapshot)
         print()
         print("Investing excess cash...")
@@ -71,7 +73,7 @@ def main():
             print()
             print_transaction_log(transaction_log)
             print()
-            print("After:")
+            print("=== After ===")
             print_snapshot(ending_snapshot)
 
 

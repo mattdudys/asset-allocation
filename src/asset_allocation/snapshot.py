@@ -33,6 +33,9 @@ class PortfolioSnapshot:
     """A snapshot of the entire portfolio."""
 
     cash: float
+    value: float
+    investible_value: float
+    excess_cash: float
     asset_classes: List[AssetClassSnapshot]
     holdings: List[HoldingSnapshot]
 
@@ -53,6 +56,9 @@ class PortfolioSnapshotter(Visitor):
         self._portfolio = portfolio
         self.snapshot = PortfolioSnapshot(
             cash=portfolio.cash_value,
+            value=portfolio.value,
+            investible_value=portfolio.investible_value,
+            excess_cash=portfolio.excess_cash,
             asset_classes=[],
             holdings=[],
         )

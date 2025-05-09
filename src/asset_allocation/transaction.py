@@ -36,5 +36,5 @@ class TransactionLog:
     def empty(self):
         return len(self.transactions) == 0
 
-    def to_dataframe(self):
+    def to_dataframe(self) -> pd.DataFrame:
         return pd.DataFrame(self.transactions)
