@@ -25,7 +25,8 @@ def print_snapshot(snapshot: PortfolioSnapshot):
 
 def print_transaction_log(transaction_log: TransactionLog):
     df = transaction_log.to_dataframe()
-    if df:
+    if not df.empty:
+        print("Transactions:")
         print(df.groupby(["type", "ticker", "price"]).sum())
 
 
@@ -53,19 +54,24 @@ def main():
     print(f"  Cash: ${portfolio.cash_value:,.2f}")
     print(f"  Excess cash: ${portfolio.excess_cash:,.2f}")
     starting_snapshot = portfolio.snapshot()
-    print_snapshot(starting_snapshot)
-    print()
 
     if args.invest_excess_cash:
+        print("Before:")
+        print_snapshot(starting_snapshot)
+        print()
+        print("Investing excess cash...")
         transaction_log = portfolio.invest_excess_cash()
         if transaction_log.empty:
-            print("Not enough excess cash to invest. No transactions were made.")
+            print("Not enough excess cash to buy anything. No transactions were made.")
         else:
             ending_snapshot = portfolio.snapshot()
             print(
-                f"Invested ${starting_snapshot.cash - ending_snapshot.cash:,.2f} of excess cash"
+                f"Invested ${starting_snapshot.cash - ending_snapshot.cash:,.2f} of excess cash."
             )
+            print()
             print_transaction_log(transaction_log)
+            print()
+            print("After:")
             print_snapshot(ending_snapshot)
 
 

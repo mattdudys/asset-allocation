@@ -32,6 +32,7 @@ class TransactionLog:
     def append(self, transaction: Transaction):
         self.transactions.append(transaction)
 
+    @property
     def empty(self):
         return len(self.transactions) == 0
 

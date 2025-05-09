@@ -52,15 +52,15 @@ class Portfolio:
 
     def invest_excess_cash(self) -> TransactionLog:
         """While there is excess cash, invest it in the portfolio."""
-        transactions = TransactionLog()
+        transaction_log = TransactionLog()
         while self.excess_cash > 0:
             transaction = self.investments.buy(self.excess_cash, self.investible_value)
             if transaction:
                 self.cash_value -= transaction.amount
-                transactions.append(transaction)
+                transaction_log.append(transaction)
             else:
                 break
-        return transactions
+        return transaction_log
 
     def snapshot(self) -> PortfolioSnapshot:
         """Create a snapshot of the portfolio structure and values.
