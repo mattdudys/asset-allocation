@@ -193,17 +193,13 @@ class CompositeAssetClass(AssetClass):
         return None
 
     def sell_overweight(self, investable_value: float) -> Optional[Transaction]:
-        """Attempt to sell one share of an overweight holding."""
-        # children = sorted(
-        #     [child for child in self.children if child.overweight(investable_value)],
-        #     key=lambda x: x.fractional_deviation(investable_value),
-        # )
-        # if not children:
-        #     print(f"{self.name}: No overweight children")
-        #     return None
-        # print(f"{self.name}: Selling most overweight child: {children[0].name}")
-        # return children[0].sell_overweight(investable_value)
-        for child in self.children:
+        """Attempt to sell one share of the most overweight child asset class, only if it is overweight."""
+        children = sorted(
+            [child for child in self.children],
+            key=lambda x: x.fractional_deviation(investable_value),
+            reverse=True,
+        )
+        for child in children:
             transaction = child.sell_overweight(investable_value)
             if transaction:
                 return transaction

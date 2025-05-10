@@ -59,7 +59,6 @@ class Portfolio:
         while self.excess_cash > 0:
             transaction = self.investments.buy(self.excess_cash, self.investible_value)
             if transaction:
-                print(transaction)
                 self.cash_value -= transaction.amount
                 transaction_log.append(transaction)
             else:
@@ -75,7 +74,6 @@ class Portfolio:
         while True:
             transaction = self.investments.sell_overweight(self.investible_value)
             if transaction:
-                print(transaction)
                 self.cash_value += transaction.amount
                 transaction_log.append(transaction)
             else:
