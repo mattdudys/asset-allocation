@@ -1,9 +1,11 @@
 """Command line interface for asset allocation."""
 
 import argparse
+from typing import Optional
 
 import pandas as pd
 
+from asset_allocation.portfolio import Portfolio
 from asset_allocation.quote_service import YFinanceQuoteService
 from asset_allocation.snapshot import PortfolioSnapshot
 from asset_allocation.transaction import TransactionLog
@@ -38,6 +40,57 @@ def print_transaction_log(transaction_log: TransactionLog):
         print(df)
 
 
+def invest_excess_cash(portfolio: Portfolio):
+    """Invest excess cash in the portfolio."""
+    starting_snapshot = portfolio.snapshot()
+    print("=== Before ===")
+    print_snapshot(starting_snapshot)
+    print()
+    print("Investing excess cash...")
+    transaction_log = portfolio.invest_excess_cash()
+    if transaction_log.empty:
+        print("Not enough excess cash to buy anything. No transactions were made.")
+    else:
+        ending_snapshot = portfolio.snapshot()
+        print(
+            f"Invested ${starting_snapshot.cash - ending_snapshot.cash:,.2f} of excess cash."
+        )
+        print()
+        print_transaction_log(transaction_log)
+        print()
+        print("=== After ===")
+        print_snapshot(ending_snapshot)
+
+
+def sell_overweight(portfolio: Portfolio):
+    """Sell overweight holdings in the portfolio."""
+    starting_snapshot = portfolio.snapshot()
+    print("=== Before ===")
+    print_snapshot(starting_snapshot)
+    print()
+    print("Selling overweight holdings...")
+    transaction_log = portfolio.sell_overweight()
+    snapshot2 = portfolio.snapshot()
+    print()
+    print_transaction_log(transaction_log)
+    print()
+    print("=== After selling overweight holdings ===")
+    print_snapshot(snapshot2)
+    print()
+    print("Investing excess cash...")
+    transaction_log = portfolio.invest_excess_cash(transaction_log)
+    if transaction_log.empty:
+        print("Not enough excess cash to buy anything. No transactions were made.")
+    else:
+        ending_snapshot = portfolio.snapshot()
+        print(f"Invested ${snapshot2.cash - ending_snapshot.cash:,.2f} of excess cash.")
+        print()
+        print_transaction_log(transaction_log)
+        print()
+        print("=== After ===")
+        print_snapshot(ending_snapshot)
+
+
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(description="Asset Allocation Portfolio Manager")
@@ -61,53 +114,11 @@ def main():
 
     loader = PortfolioLoader(YFinanceQuoteService())
     portfolio = loader.load(args.config, args.holdings)
-    starting_snapshot = portfolio.snapshot()
 
     if args.invest_excess_cash:
-        print("=== Before ===")
-        print_snapshot(starting_snapshot)
-        print()
-        print("Investing excess cash...")
-        transaction_log = portfolio.invest_excess_cash()
-        if transaction_log.empty:
-            print("Not enough excess cash to buy anything. No transactions were made.")
-        else:
-            ending_snapshot = portfolio.snapshot()
-            print(
-                f"Invested ${starting_snapshot.cash - ending_snapshot.cash:,.2f} of excess cash."
-            )
-            print()
-            print_transaction_log(transaction_log)
-            print()
-            print("=== After ===")
-            print_snapshot(ending_snapshot)
+        invest_excess_cash(portfolio)
     elif args.sell_overweight:
-        print("=== Before ===")
-        print_snapshot(starting_snapshot)
-        print()
-        print("Selling overweight holdings...")
-        transaction_log = portfolio.sell_overweight()
-        snapshot2 = portfolio.snapshot()
-        print()
-        print_transaction_log(transaction_log)
-        print()
-        print("=== After selling overweight holdings ===")
-        print_snapshot(snapshot2)
-        print()
-        print("Investing excess cash...")
-        transaction_log = portfolio.invest_excess_cash(transaction_log)
-        if transaction_log.empty:
-            print("Not enough excess cash to buy anything. No transactions were made.")
-        else:
-            ending_snapshot = portfolio.snapshot()
-            print(
-                f"Invested ${snapshot2.cash - ending_snapshot.cash:,.2f} of excess cash."
-            )
-            print()
-            print_transaction_log(transaction_log)
-            print()
-            print("=== After ===")
-            print_snapshot(ending_snapshot)
+        sell_overweight(portfolio)
 
 
 if __name__ == "__main__":
