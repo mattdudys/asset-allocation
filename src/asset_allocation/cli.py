@@ -31,6 +31,7 @@ def print_transaction_log(transaction_log: TransactionLog):
     df = transaction_log.to_dataframe()
     if not df.empty:
         print("Transactions:")
+        df["type"] = df["type"].astype(str)
         df["price"] = df["price"].apply(lambda x: f"${x:,.2f}")
         df = df.groupby(["type", "ticker", "price"]).sum()
         df["amount"] = df["amount"].apply(lambda x: f"${x:,.2f}")
@@ -51,6 +52,11 @@ def main():
         action="store_true",
         help="Invest excess cash according to target allocations",
     )
+    parser.add_argument(
+        "--sell-overweight",
+        action="store_true",
+        help="Sell overweight holdings",
+    )
     args = parser.parse_args()
 
     loader = PortfolioLoader(YFinanceQuoteService())
@@ -69,6 +75,33 @@ def main():
             ending_snapshot = portfolio.snapshot()
             print(
                 f"Invested ${starting_snapshot.cash - ending_snapshot.cash:,.2f} of excess cash."
+            )
+            print()
+            print_transaction_log(transaction_log)
+            print()
+            print("=== After ===")
+            print_snapshot(ending_snapshot)
+    elif args.sell_overweight:
+        print("=== Before ===")
+        print_snapshot(starting_snapshot)
+        print()
+        print("Selling overweight holdings...")
+        transaction_log = portfolio.sell_overweight()
+        snapshot2 = portfolio.snapshot()
+        print()
+        print_transaction_log(transaction_log)
+        print()
+        print("=== After selling overweight holdings ===")
+        print_snapshot(snapshot2)
+        print()
+        print("Investing excess cash...")
+        transaction_log = portfolio.invest_excess_cash(transaction_log)
+        if transaction_log.empty:
+            print("Not enough excess cash to buy anything. No transactions were made.")
+        else:
+            ending_snapshot = portfolio.snapshot()
+            print(
+                f"Invested ${snapshot2.cash - ending_snapshot.cash:,.2f} of excess cash."
             )
             print()
             print_transaction_log(transaction_log)

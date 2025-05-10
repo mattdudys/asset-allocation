@@ -121,6 +121,11 @@ class AssetClass(ABC):
         """Attempt to sell one share of a holding in this asset class."""
         pass
 
+    @abstractmethod
+    def sell_overweight(self, investable_value: float) -> Optional[Transaction]:
+        """Attempt to sell one share of an overweight holding in this asset class."""
+        pass
+
     def visit(self, visitor: Visitor) -> None:
         """Visit this node with a visitor."""
         visitor.visit_asset_class(self)
@@ -187,6 +192,23 @@ class CompositeAssetClass(AssetClass):
                 return transaction
         return None
 
+    def sell_overweight(self, investable_value: float) -> Optional[Transaction]:
+        """Attempt to sell one share of an overweight holding."""
+        # children = sorted(
+        #     [child for child in self.children if child.overweight(investable_value)],
+        #     key=lambda x: x.fractional_deviation(investable_value),
+        # )
+        # if not children:
+        #     print(f"{self.name}: No overweight children")
+        #     return None
+        # print(f"{self.name}: Selling most overweight child: {children[0].name}")
+        # return children[0].sell_overweight(investable_value)
+        for child in self.children:
+            transaction = child.sell_overweight(investable_value)
+            if transaction:
+                return transaction
+        return None
+
 
 class LeafAssetClass(AssetClass):
     """A leaf asset class is a group of holdings in a portfolio with a defined target weight.
@@ -241,3 +263,9 @@ class LeafAssetClass(AssetClass):
             if transaction:
                 return transaction
         return None
+
+    def sell_overweight(self, investable_value: float) -> Optional[Transaction]:
+        """Attempt to sell one share of this asset class if it is overweight."""
+        if not self.overweight(investable_value):
+            return None
+        return self.sell()

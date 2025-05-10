@@ -1,4 +1,4 @@
-from typing import Union, List
+from typing import Optional, Union, List
 
 from asset_allocation.transaction import TransactionLog
 from .asset_class import AssetClass, CompositeAssetClass
@@ -50,13 +50,33 @@ class Portfolio:
         """The value of the portfolio's investments and excess cash."""
         return self.investments.value + self.excess_cash
 
-    def invest_excess_cash(self) -> TransactionLog:
+    def invest_excess_cash(
+        self, transaction_log: Optional[TransactionLog] = None
+    ) -> TransactionLog:
         """While there is excess cash, invest it in the portfolio."""
-        transaction_log = TransactionLog()
+        if transaction_log is None:
+            transaction_log = TransactionLog()
         while self.excess_cash > 0:
             transaction = self.investments.buy(self.excess_cash, self.investible_value)
             if transaction:
+                print(transaction)
                 self.cash_value -= transaction.amount
+                transaction_log.append(transaction)
+            else:
+                break
+        return transaction_log
+
+    def sell_overweight(
+        self, transaction_log: Optional[TransactionLog] = None
+    ) -> TransactionLog:
+        """While there are overweight holdings, sell one share of each."""
+        if transaction_log is None:
+            transaction_log = TransactionLog()
+        while True:
+            transaction = self.investments.sell_overweight(self.investible_value)
+            if transaction:
+                print(transaction)
+                self.cash_value += transaction.amount
                 transaction_log.append(transaction)
             else:
                 break
