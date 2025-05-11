@@ -1,4 +1,4 @@
-from typing import Dict, List, Union
+from typing import Dict
 import yaml
 from .portfolio import Portfolio
 from .asset_class import AssetClass, CompositeAssetClass, LeafAssetClass
@@ -21,6 +21,19 @@ class PortfolioLoader:
         """Load the current holdings from a YAML file."""
         with open(holdings_file, "r") as f:
             return yaml.safe_load(f)
+
+    def _tickers_within_asset_classes(self, data: dict) -> set[str]:
+        """Extract tickers from the asset class hierarchy without constructing the tree."""
+        tickers = set()
+        # If data contains "investments", or "asset_classes", it's a composite node.
+        asset_classes = data.get("investments", []) + data.get("asset_classes", [])
+        if asset_classes:
+            for asset_class in asset_classes:
+                tickers.update(self._tickers_within_asset_classes(asset_class))
+        elif "holdings" in data:
+            # Leaf node with holdings
+            tickers.update(data.get("holdings", []))
+        return tickers
 
     def _create_asset_class(self, data: dict, holdings: Dict[str, int]) -> AssetClass:
         """Create an AssetClass from the hierarchy data."""
@@ -58,6 +71,12 @@ class PortfolioLoader:
         # Extract cash values
         cash_value = holdings_data.get("cash_value", 0.0)
         cash_target = hierarchy_data.get("cash_target", 0.0)
+
+        # Download prices for all tickers referenced in one batch.
+        tickers = self._tickers_within_asset_classes(hierarchy_data) | set(
+            holdings_data.get("holdings", {}).keys()
+        )
+        self.quote_service.cache(list(tickers))
 
         # Create the asset class hierarchy
         children = [
