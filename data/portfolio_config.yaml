@@ -1,4 +1,15 @@
+cash_value: 10000.0
 cash_target: 2000.0
+holdings:
+  AAPL: 10
+  MSFT: 5
+  GOOGL: 2
+  SAP: 8
+  ASML: 4
+  AGG: 20
+  BND: 15
+  BNDX: 10
+  BWX: 8
 investments:
   - name: US Equity
     target_weight: 0.5
@@ -9,8 +20,8 @@ investments:
   - name: Fixed Income
     asset_classes:
       - name: US Bonds
-        target_weight: 0.14  # 0.7 * 0.2
+        target_weight: 0.14
         holdings: ["AGG", "BND"]
       - name: International Bonds
-        target_weight: 0.06  # 0.3 * 0.2
-        holdings: ["BNDX", "BWX"] 
+        target_weight: 0.06
+        holdings: ["BNDX", "BWX"]

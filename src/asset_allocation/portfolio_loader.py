@@ -12,14 +12,9 @@ class PortfolioLoader:
     def __init__(self, quote_service: QuoteService = None):
         self.quote_service = quote_service or FakeQuoteService({})
 
-    def _load_asset_class_hierarchy(self, config_file: str) -> dict:
-        """Load the asset class hierarchy from a YAML file."""
+    def _load_portfolio_data(self, config_file: str) -> dict:
+        """Load the combined portfolio data from a YAML file."""
         with open(config_file, "r") as f:
-            return yaml.safe_load(f)
-
-    def _load_holdings(self, holdings_file: str) -> dict:
-        """Load the current holdings from a YAML file."""
-        with open(holdings_file, "r") as f:
             return yaml.safe_load(f)
 
     def _tickers_within_asset_classes(self, data: dict) -> set[str]:
@@ -58,30 +53,28 @@ class PortfolioLoader:
 
         return LeafAssetClass(name, target_weight, holding_objects)
 
-    def load(self, config_file: str, holdings_file: str) -> Portfolio:
-        """Load a portfolio from configuration and holdings YAML files.
+    def load(self, config_file: str) -> Portfolio:
+        """Load a portfolio from a single YAML configuration file.
 
         Args:
-            config_file: Path to the YAML file containing asset class hierarchy
-            holdings_file: Path to the YAML file containing current holdings
+            config_file: Path to the YAML file containing portfolio data.
         """
-        hierarchy_data = self._load_asset_class_hierarchy(config_file)
-        holdings_data = self._load_holdings(holdings_file)
+        data = self._load_portfolio_data(config_file)
 
         # Extract cash values
-        cash_value = holdings_data.get("cash_value", 0.0)
-        cash_target = hierarchy_data.get("cash_target", 0.0)
+        cash_value = data.get("cash_value", 0.0)
+        cash_target = data.get("cash_target", 0.0)
 
         # Download prices for all tickers referenced in one batch.
-        tickers = self._tickers_within_asset_classes(hierarchy_data) | set(
-            holdings_data.get("holdings", {}).keys()
+        tickers = self._tickers_within_asset_classes(data) | set(
+            data.get("holdings", {}).keys()
         )
         self.quote_service.cache(list(tickers))
 
         # Create the asset class hierarchy
         children = [
-            self._create_asset_class(investment, holdings_data["holdings"])
-            for investment in hierarchy_data["investments"]
+            self._create_asset_class(investment, data["holdings"])
+            for investment in data["investments"]
         ]
 
         return Portfolio(

@@ -95,10 +95,7 @@ def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(description="Asset Allocation Portfolio Manager")
     parser.add_argument(
-        "--config", help="Path to asset class hierarchy YAML file", required=True
-    )
-    parser.add_argument(
-        "--holdings", help="Path to current holdings YAML file", required=True
+        "--config", help="Path to the YAML configuration file", required=True
     )
     parser.add_argument(
         "--invest-excess-cash",
@@ -113,7 +110,7 @@ def main():
     args = parser.parse_args()
 
     loader = PortfolioLoader(YFinanceQuoteService())
-    portfolio = loader.load(args.config, args.holdings)
+    portfolio = loader.load(args.config)
 
     if args.invest_excess_cash:
         invest_excess_cash(portfolio)

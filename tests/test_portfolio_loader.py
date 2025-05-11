@@ -22,10 +22,7 @@ class TestPortfolioLoader(unittest.TestCase):
         self.loader = PortfolioLoader(self.quote_service)
 
     def test_load_portfolio(self):
-        portfolio = self.loader.load(
-            "data/portfolio_config.yaml",
-            "data/portfolio_holdings.yaml",
-        )
+        portfolio = self.loader.load("data/portfolio_config.yaml")
 
         # Test basic portfolio properties
         self.assertEqual(portfolio.cash_value, 10000.0)
