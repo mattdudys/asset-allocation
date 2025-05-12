@@ -20,12 +20,11 @@ class PortfolioLoader:
     def _tickers_within_asset_classes(self, data: dict) -> set[str]:
         """Extract tickers from the asset class hierarchy without constructing the tree."""
         tickers = set()
-        # If data contains "investments", or "asset_classes", it's a composite node.
-        asset_classes = data.get("investments", []) + data.get("asset_classes", [])
-        if asset_classes:
-            for asset_class in asset_classes:
-                tickers.update(self._tickers_within_asset_classes(asset_class))
-        elif "holdings" in data:
+        # If data contains "asset_classes", it's a composite node.
+        asset_classes = data.get("asset_classes", [])
+        for asset_class in asset_classes:
+            tickers.update(self._tickers_within_asset_classes(asset_class))
+        if "holdings" in data:
             # Leaf node with holdings
             tickers.update(data.get("holdings", []))
         return tickers
@@ -73,8 +72,8 @@ class PortfolioLoader:
 
         # Create the asset class hierarchy
         children = [
-            self._create_asset_class(investment, data["holdings"])
-            for investment in data["investments"]
+            self._create_asset_class(asset_class, data["holdings"])
+            for asset_class in data["asset_classes"]
         ]
 
         return Portfolio(

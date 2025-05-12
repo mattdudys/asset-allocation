@@ -10,7 +10,7 @@ holdings:
   BND: 15
   BNDX: 10
   BWX: 8
-investments:
+asset_classes:
   - name: US Equity
     target_weight: 0.5
     holdings: ["AAPL", "MSFT", "GOOGL"]
