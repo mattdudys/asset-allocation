@@ -11,11 +11,11 @@ pip install asset-allocation
 ## Usage
 
 ```bash
-# Load and view a portfolio
-asset-allocation --config config.yaml --holdings holdings.yaml
+# Invest excess cash according to target allocations
+asset-allocation invest config.yaml
 
-# Rebalance a portfolio
-asset-allocation --config config.yaml --holdings holdings.yaml --rebalance
+# Sell overweight holdings and rebalance portfolio
+asset-allocation rebalance config.yaml
 ```
 
 ## Development
@@ -23,4 +23,4 @@ asset-allocation --config config.yaml --holdings holdings.yaml --rebalance
 ```bash
 # Install in development mode
 pip install -e .
-``` 
+```

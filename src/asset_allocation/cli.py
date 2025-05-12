@@ -94,27 +94,26 @@ def sell_overweight(portfolio: Portfolio):
 def main():
     """Main entry point for the CLI."""
     parser = argparse.ArgumentParser(description="Asset Allocation Portfolio Manager")
-    parser.add_argument(
-        "--config", help="Path to the YAML configuration file", required=True
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    invest_parser = subparsers.add_parser(
+        "invest", help="Invest excess cash according to target allocations"
     )
-    parser.add_argument(
-        "--invest-excess-cash",
-        action="store_true",
-        help="Invest excess cash according to target allocations",
+    invest_parser.add_argument("config", help="Path to the YAML configuration file")
+
+    rebalance_parser = subparsers.add_parser(
+        "rebalance", help="Sell overweight holdings and rebalance portfolio"
     )
-    parser.add_argument(
-        "--sell-overweight",
-        action="store_true",
-        help="Sell overweight holdings",
-    )
+    rebalance_parser.add_argument("config", help="Path to the YAML configuration file")
+
     args = parser.parse_args()
 
     loader = PortfolioLoader(YFinanceQuoteService())
     portfolio = loader.load(args.config)
 
-    if args.invest_excess_cash:
+    if args.command == "invest":
         invest_excess_cash(portfolio)
-    elif args.sell_overweight:
+    elif args.command == "rebalance":
         sell_overweight(portfolio)
 
 
