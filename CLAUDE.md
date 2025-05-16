@@ -85,3 +85,11 @@ asset_classes:               # Asset class hierarchy with target weights
     holdings: ["AAPL", "MSFT", "GOOGL"]
   # ...
 ```
+
+## Formatting
+
+```bash
+# Format files with black
+poetry run black .
+```
+
