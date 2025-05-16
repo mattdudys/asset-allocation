@@ -6,6 +6,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Asset Allocation is a Python tool for managing investment portfolio asset allocation. It helps manage portfolio rebalancing and investment decisions based on target asset allocations.
 
+## Philosophy and Inspiration
+
+This tool is built on several key investment principles:
+
+1. **Optimal Lazy Rebalancing**: The primary approach is to direct new cash to underweighted asset classes (implemented in the `invest` command), minimizing tax consequences in taxable accounts by avoiding unnecessary selling.
+
+2. **Larry Swedroe's 5/25 Rule**: An asset class is considered out of balance if it deviates by an absolute 5% or a relative 25% from its target weight.
+
+3. **Hierarchical Rebalancing**: The tool implements Swedroe's recommendation to check allocations at three levels:
+   - Broad asset classes (equities vs fixed income)
+   - Geographic categories (domestic vs international)
+   - Specific asset categories (small-cap, value, etc.)
+
+4. **Bogleheads Rebalancing Approaches**: Incorporates various rebalancing methodologies from Bogleheads investment philosophy.
+
 ## Architecture
 
 The codebase follows a hierarchical structure to represent portfolios:
@@ -34,6 +49,8 @@ The codebase follows a hierarchical structure to represent portfolios:
 - **Rebalancing Bands**: Uses a 5/25 rule for rebalancing (5% absolute or 25% relative deviation)
 - **Prioritized Holdings**: Within each asset class, holdings are prioritized for buy/sell operations
 - **Excess Cash**: Cash beyond a target cash reserve that can be invested
+- **Optimal Lazy Rebalancing**: Directing new investments to underweight asset classes rather than selling overweight positions
+- **Tax-Aware Investing**: The primary mode (`invest`) avoids selling to prevent capital gains taxes in taxable accounts
 
 ## Development Setup
 
@@ -86,10 +103,19 @@ asset_classes:               # Asset class hierarchy with target weights
   # ...
 ```
 
+## Core Commands
+
+1. **invest**: Implements optimal lazy rebalancing by using new cash to buy underweighted assets
+   - Tax-efficient approach that avoids selling
+   - Primary use case for ongoing portfolio contributions
+
+2. **rebalance**: More aggressive approach that sells overweight positions and reinvests proceeds
+   - May trigger capital gains taxes in taxable accounts
+   - Useful for tax-advantaged accounts or when portfolio is significantly out of balance
+
 ## Formatting
 
 ```bash
 # Format files with black
 poetry run black .
 ```
-
