@@ -1,27 +1,41 @@
-cash_value: 10000.0
+cash_value: 2018.49
 cash_target: 2000.0
 holdings:
-  AAPL: 10
-  MSFT: 5
-  GOOGL: 2
-  SAP: 8
-  ASML: 4
-  AGG: 20
-  BND: 15
-  BNDX: 10
-  BWX: 8
+  VOO: 50
+  VIOV: 300
+  FNILX: 30
+  VYMI: 125
+  VSS: 90
+  VGIT: 157
+  SUB: 234
+  VTEB: 317
 asset_classes:
-  - name: US Equity
-    target_weight: 0.5
-    holdings: ["AAPL", "MSFT", "GOOGL"]
-  - name: International Equity
-    target_weight: 0.3
-    holdings: ["SAP", "ASML"]
+  - name: Equity
+    asset_classes:
+      - name: US Equity
+        asset_classes:
+          - name: US Large Cap Blend
+            target_weight: 0.21
+            holdings: ["VOO", "FNILX"]
+          - name: US Small Cap Value
+            target_weight: 0.21
+            holdings: ["VIOV", "FISVX"]
+      - name: International Equity
+        asset_classes:
+          - name: International Large Cap Blend
+            target_weight: 0.09
+            holdings: ["VYMI", "EFV"]
+          - name: International Small Cap Value
+            target_weight: 0.09
+            holdings: ["VSS", "FNDC"]
   - name: Fixed Income
     asset_classes:
-      - name: US Bonds
-        target_weight: 0.14
-        holdings: ["AGG", "BND"]
-      - name: International Bonds
+      - name: Intermediate-Term Bonds 
         target_weight: 0.06
-        holdings: ["BNDX", "BWX"]
+        holdings: ["VGIT", "BND"]
+      - name: Tax-Free Short-Term Bonds
+        target_weight: 0.16
+        holdings: ["SUB"]
+      - name: Tax-Free Intermediate-Term Bonds
+        target_weight: 0.18
+        holdings: ["VTEB"]
