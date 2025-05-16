@@ -37,31 +37,34 @@ The tool uses YAML for configuration. A sample configuration file:
 
 ```yaml
 # Current and target cash values
-cash_value: 10000.0
+cash_value: 5000.0
 cash_target: 2000.0
 
 # Current holdings (ticker: shares)
 holdings:
-  AAPL: 10
-  MSFT: 5
-  GOOGL: 2
-  AGG: 20
-  BNDX: 10
+  VTI: 100   # Vanguard Total US Stock Market ETF
+  VXUS: 80   # Vanguard Total International Stock ETF
+  BND: 70    # Vanguard Total US Bond Market ETF
 
 # Asset class hierarchy with target weights
 asset_classes:
-  - name: US Equity
-    target_weight: 0.5
-    holdings: ["AAPL", "MSFT", "GOOGL"]
-  - name: Fixed Income
+  - name: Equity
     asset_classes:
-      - name: US Bonds
-        target_weight: 0.3
-        holdings: ["AGG"]
-      - name: International Bonds
-        target_weight: 0.2
-        holdings: ["BNDX"]
+      - name: US Equity
+        target_weight: 0.40
+        holdings: ["VTI"]
+      - name: International Equity
+        target_weight: 0.20
+        holdings: ["VXUS"]
+  - name: Fixed Income
+    target_weight: 0.40
+    holdings: ["BND"]
 ```
+
+This example represents a classic three-fund portfolio following Bogleheads principles:
+- 60% in equities (40% US, 20% international)
+- 40% in bonds
+- Each asset class represented by a single low-cost, broad-market ETF
 
 ## Development
 
