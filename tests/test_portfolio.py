@@ -2,6 +2,7 @@ import unittest
 from asset_allocation.holding import Holding
 from asset_allocation.asset_class import CompositeAssetClass, LeafAssetClass
 from asset_allocation.portfolio import Portfolio
+from asset_allocation.transaction import BuySell
 
 
 class TestPortfolio(unittest.TestCase):
@@ -125,3 +126,162 @@ class TestPortfolio(unittest.TestCase):
         self.assertEqual(portfolio.cash_value, 0.0)
         # Total value should remain the same
         self.assertEqual(portfolio.value, 2000.0)
+
+    def test_sell_overweight_with_overweight_asset(self):
+        # Create a portfolio with an overweight asset
+        # AAPL value = 6000, which is 60% of investible value, but target is 40% (so it's 50% overweight)
+        holding1 = Holding("AAPL", 60, price=100.0)  # 6000
+        us_equity = LeafAssetClass("US Equity", target_weight=0.4, children=[holding1])
+
+        # MSFT value = 1000, which is 10% of investible value, but target is 20% (so it's 50% underweight)
+        holding2 = Holding("MSFT", 10, price=100.0)  # 1000
+        intl_equity = LeafAssetClass(
+            "International Equity", target_weight=0.2, children=[holding2]
+        )
+
+        # AGG value = 3000, which is 30% of investible value, but target is 40% (so it's 25% underweight)
+        holding3 = Holding("AGG", 30, price=100.0)  # 3000
+        fixed_income = LeafAssetClass(
+            "Fixed Income", target_weight=0.4, children=[holding3]
+        )
+
+        portfolio = Portfolio(
+            cash_value=0.0,  # No cash initially
+            cash_target=0.0,  # No cash target
+            children=[us_equity, intl_equity, fixed_income],
+        )
+
+        # Portfolio structure:
+        # - US Equity (AAPL): 6000 (60%) target 40% -> overweight
+        # - International Equity (MSFT): 1000 (10%) target 20% -> underweight
+        # - Fixed Income (AGG): 3000 (30%) target 40% -> underweight
+        # Total: 10000 (100%)
+
+        # Execute sell_overweight
+        transaction_log = portfolio.sell_overweight()
+
+        # Verify transactions occurred (exact count depends on implementation)
+        self.assertFalse(transaction_log.empty)
+        self.assertGreater(len(transaction_log.transactions), 0)
+
+        # Verify all transactions are SELL type and only for AAPL
+        for transaction in transaction_log.transactions:
+            self.assertEqual(transaction.type, BuySell.SELL)
+            self.assertEqual(transaction.ticker, "AAPL")
+
+        # Calculate total shares sold
+        total_shares_sold = sum(t.shares for t in transaction_log.transactions)
+
+        # Verify portfolio state after selling
+        self.assertEqual(holding1.shares, 60 - total_shares_sold)  # AAPL reduced
+        self.assertEqual(holding2.shares, 10)  # MSFT unchanged
+        self.assertEqual(holding3.shares, 30)  # AGG unchanged
+        self.assertEqual(
+            portfolio.cash_value, total_shares_sold * 100.0
+        )  # Cash increased
+
+        # Verify that AAPL is no longer overweight or at least less overweight
+        current_weight = holding1.value / portfolio.investible_value
+        # Should be closer to target than original 60%
+        self.assertLess(current_weight, 0.6)
+
+    def test_sell_overweight_with_no_overweight_assets(self):
+        # Create a balanced portfolio
+        holding1 = Holding("AAPL", 40, price=100.0)  # 4000 - exactly at target
+        us_equity = LeafAssetClass("US Equity", target_weight=0.4, children=[holding1])
+
+        holding2 = Holding("MSFT", 20, price=100.0)  # 2000 - exactly at target
+        intl_equity = LeafAssetClass(
+            "International Equity", target_weight=0.2, children=[holding2]
+        )
+
+        holding3 = Holding("AGG", 40, price=100.0)  # 4000 - exactly at target
+        fixed_income = LeafAssetClass(
+            "Fixed Income", target_weight=0.4, children=[holding3]
+        )
+
+        portfolio = Portfolio(
+            cash_value=0.0,
+            cash_target=0.0,
+            children=[us_equity, intl_equity, fixed_income],
+        )
+
+        # Execute sell_overweight
+        transaction_log = portfolio.sell_overweight()
+
+        # Verify no transaction occurred
+        self.assertTrue(transaction_log.empty)
+        self.assertEqual(len(transaction_log.transactions), 0)
+
+        # Verify portfolio state is unchanged
+        self.assertEqual(holding1.shares, 40)
+        self.assertEqual(holding2.shares, 20)
+        self.assertEqual(holding3.shares, 40)
+        self.assertEqual(portfolio.cash_value, 0.0)
+
+    def test_sell_overweight_followed_by_invest_excess_cash(self):
+        # Create overweight and underweight assets
+        holding1 = Holding("AAPL", 60, price=100.0)  # 6000 - overweight
+        us_equity = LeafAssetClass("US Equity", target_weight=0.4, children=[holding1])
+
+        holding2 = Holding("MSFT", 10, price=100.0)  # 1000 - underweight
+        intl_equity = LeafAssetClass(
+            "International Equity", target_weight=0.2, children=[holding2]
+        )
+
+        holding3 = Holding("AGG", 30, price=100.0)  # 3000 - underweight
+        fixed_income = LeafAssetClass(
+            "Fixed Income", target_weight=0.4, children=[holding3]
+        )
+
+        portfolio = Portfolio(
+            cash_value=0.0,
+            cash_target=0.0,
+            children=[us_equity, intl_equity, fixed_income],
+        )
+
+        # First sell overweight assets
+        transaction_log = portfolio.sell_overweight()
+
+        # Verify sell transactions occurred
+        self.assertFalse(transaction_log.empty)
+        self.assertGreater(len(transaction_log.transactions), 0)
+
+        # Verify all transactions are SELL type and for AAPL
+        for transaction in transaction_log.transactions:
+            self.assertEqual(transaction.type, BuySell.SELL)
+            self.assertEqual(transaction.ticker, "AAPL")
+
+        # Calculate total cash generated from selling
+        total_cash_from_selling = portfolio.cash_value
+        self.assertGreater(total_cash_from_selling, 0)
+
+        # Save the number of transactions before investing
+        num_transactions_before_invest = len(transaction_log.transactions)
+
+        # Now invest the excess cash from selling
+        transaction_log = portfolio.invest_excess_cash(transaction_log)
+
+        # Verify buy transactions occurred
+        self.assertGreater(
+            len(transaction_log.transactions), num_transactions_before_invest
+        )
+
+        # Verify the new transactions are BUY type
+        for i in range(
+            num_transactions_before_invest, len(transaction_log.transactions)
+        ):
+            self.assertEqual(transaction_log.transactions[i].type, BuySell.BUY)
+
+        # Cash should be close to 0 (or exactly 0 if everything could be invested)
+        self.assertLess(portfolio.cash_value, total_cash_from_selling)
+
+        # Verify either MSFT or AGG (or both) increased in shares
+        self.assertTrue(
+            holding2.shares > 10 or holding3.shares > 30,
+            "Either MSFT or AGG should have increased in shares",
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()
