@@ -14,10 +14,13 @@ A Python tool for managing investment portfolio asset allocation. This tool help
 ## Installation
 
 ```bash
-# Install from PyPI
-pip install asset-allocation
+# Clone the repository
+git clone https://github.com/mattdudys/asset-allocation.git
+cd asset-allocation
 
-# Development installation with Poetry
+# Install in development mode
+pip install -e .
+# Or with Poetry
 poetry install
 ```
 
@@ -69,17 +72,11 @@ This example represents a classic three-fund portfolio following Bogleheads prin
 ## Development
 
 ```bash
-# Clone the repository
-git clone https://github.com/mattdudys/asset-allocation.git
-cd asset-allocation
-
-# Install in development mode
-pip install -e .
-# Or with Poetry
-poetry install
-
 # Run tests
-poetry run pytest
+poetry run python -m unittest discover tests
+
+# Run specific test files
+poetry run python -m unittest tests/test_portfolio.py
 
 # Format code
 poetry run black .

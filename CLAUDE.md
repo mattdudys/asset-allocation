@@ -68,14 +68,14 @@ poetry install
 ## Common Commands
 
 ```bash
-# Run the tests
-poetry run pytest
+# Run tests
+poetry run python -m unittest discover tests
 
 # Run specific test files
-poetry run pytest tests/test_portfolio.py
+poetry run python -m unittest tests/test_portfolio.py
 
 # Run specific test cases
-poetry run pytest tests/test_portfolio.py::TestPortfolio::test_portfolio_value_sums_children_and_cash
+poetry run python -m unittest tests/test_portfolio.py:TestPortfolio.test_portfolio_value_sums_children_and_cash
 
 # Install in development mode
 pip install -e .
