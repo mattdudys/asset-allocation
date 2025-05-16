@@ -119,3 +119,45 @@ asset_classes:               # Asset class hierarchy with target weights
 # Format files with black
 poetry run black .
 ```
+
+## Development Workflow
+
+- Before committing run black to reformat all files.
+
+## Unit Testing Guidelines
+
+Follow these principles for creating well-structured unit tests:
+
+1. **Prioritize DAMP over DRY**
+   - Make tests **D**escriptive **A**nd **M**eaningful rather than attempting to avoid all repetition
+   - Optimize for readability over code reuse, since tests don't have their own tests
+
+2. **Keep Cause and Effect Clear**
+   - Arrange all test inputs close to their verification
+   - Keep setup, action, and assertion in proximity within the same test method
+   - Make the connection between test input and expected output obvious
+
+3. **Maintain Test Independence**
+   - Each test should create its own test data rather than relying on shared fixtures
+   - Avoid complex setUp/tearDown methods that hide important test context
+   - Create data directly in the test method unless truly common across all tests
+
+4. **Write Explicit Assertions**
+   - Test one behavior per test method
+   - Prefer multiple specific assertions over complex verification logic
+   - Avoid loops or complex logic in the verification section
+
+5. **Use Descriptive Test Names**
+   - Name tests to describe the specific behavior being tested
+   - Follow a convention like `test_[feature]_[scenario]_[expected outcome]`
+   - Test names should read like documentation of system behavior
+
+6. **Keep Tests Simple**
+   - Tests should be simple enough to inspect manually for correctness
+   - Avoid test helpers that hide important details
+   - Make each test a clear, standalone story of system behavior
+
+7. **Structure Tests Logically**
+   - Follow the Arrange-Act-Assert (AAA) pattern
+   - Group test methods by the functionality they test
+   - Use meaningful constants instead of magic values
