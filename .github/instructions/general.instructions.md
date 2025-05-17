@@ -21,5 +21,6 @@ This project is a Python tool for managing investment portfolio asset allocation
     - **5/25 Rule:** An asset class is out of balance if it deviates by an absolute 5% or a relative 25% from its target weight.
     - **Hierarchical Rebalancing:** Checking allocations at broad, geographic, and specific asset category levels.
 - **`invest` command:** Implements optimal lazy rebalancing using new cash.
-- **`rebalance` command:** More aggressive approach that may involve selling overweight positions.
+- **`divest` command:** Sells holdings until the cash target is met.
+- **`rebalance` command:** More aggressive approach that may involve selling overweight positions and reinvesting.
 - **Visitor Pattern:** Used for traversing the asset class hierarchy (e.g., for creating snapshots).

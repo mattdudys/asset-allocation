@@ -80,6 +80,27 @@ class Portfolio:
                 break
         return transaction_log
 
+    def divest(
+        self, transaction_log: Optional[TransactionLog] = None
+    ) -> TransactionLog:
+        """Sell overweight holdings until cash target is met."""
+        if transaction_log is None:
+            transaction_log = TransactionLog()
+
+        # Calculate investible_value once before the loop
+        initial_investible_value = self.investible_value
+
+        while self.cash_value < self.cash_target:
+            # Pass the initial_investible_value to the sell method
+            transaction = self.investments.sell(initial_investible_value)
+            if transaction:
+                self.cash_value += transaction.amount
+                transaction_log.append(transaction)
+            else:
+                # No assets left to sell to reach target
+                break
+        return transaction_log
+
     def snapshot(self) -> PortfolioSnapshot:
         """Create a snapshot of the portfolio structure and values.
 

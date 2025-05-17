@@ -109,7 +109,10 @@ asset_classes:               # Asset class hierarchy with target weights
    - Tax-efficient approach that avoids selling
    - Primary use case for ongoing portfolio contributions
 
-2. **rebalance**: More aggressive approach that sells overweight positions and reinvests proceeds
+2. **divest**: Sells overweight holdings until the cash target is met.
+   - Useful for generating cash from overweight positions without fully rebalancing.
+
+3. **rebalance**: More aggressive approach that sells overweight positions and reinvests proceeds
    - May trigger capital gains taxes in taxable accounts
    - Useful for tax-advantaged accounts or when portfolio is significantly out of balance
 

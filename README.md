@@ -30,8 +30,11 @@ poetry install
 # Invest excess cash according to target allocations
 asset-allocation invest path/to/config.yaml
 
-# Sell overweight holdings and rebalance portfolio
+# Sell overweight holdings and invest excess cash to rebalance portfolio
 asset-allocation rebalance path/to/config.yaml
+
+# Sell most overweight holdings to reach cash target
+asset-allocation divest path/to/config.yaml
 ```
 
 ## Configuration
@@ -108,6 +111,7 @@ When investing excess cash or rebalancing:
 
 - **invest**: Implements optimal lazy rebalancing by using new cash to buy underweighted assets
 - **rebalance**: More aggressive approach that sells overweight positions and reinvests proceeds
+- **divest**: Sells overweight holdings until the cash target is met
 
 ## Inspiration
 

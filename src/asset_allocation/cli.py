@@ -62,7 +62,23 @@ def invest_excess_cash(portfolio: Portfolio):
         print_snapshot(ending_snapshot)
 
 
-def sell_overweight(portfolio: Portfolio):
+def divest_portfolio(portfolio: Portfolio):
+    """Sell overweight holdings to reach cash target."""
+    starting_snapshot = portfolio.snapshot()
+    print("=== Before ===")
+    print_snapshot(starting_snapshot)
+    print()
+    print("Selling overweight holdings to reach cash target...")
+    transaction_log = portfolio.divest()
+    ending_snapshot = portfolio.snapshot()
+    print()
+    print_transaction_log(transaction_log)
+    print()
+    print("=== After ===")
+    print_snapshot(ending_snapshot)
+
+
+def rebalance(portfolio: Portfolio):
     """Sell overweight holdings in the portfolio."""
     starting_snapshot = portfolio.snapshot()
     print("=== Before ===")
@@ -101,6 +117,11 @@ def main():
     )
     invest_parser.add_argument("config", help="Path to the YAML configuration file")
 
+    divest_parser = subparsers.add_parser(
+        "divest", help="Sell overweight holdings to reach cash target and reinvest"
+    )
+    divest_parser.add_argument("config", help="Path to the YAML configuration file")
+
     rebalance_parser = subparsers.add_parser(
         "rebalance", help="Sell overweight holdings and rebalance portfolio"
     )
@@ -113,8 +134,10 @@ def main():
 
     if args.command == "invest":
         invest_excess_cash(portfolio)
+    elif args.command == "divest":
+        divest_portfolio(portfolio)
     elif args.command == "rebalance":
-        sell_overweight(portfolio)
+        rebalance(portfolio)
 
 
 if __name__ == "__main__":
