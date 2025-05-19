@@ -15,7 +15,7 @@ class TestPortfolio(unittest.TestCase):
         )
 
     def test_portfolio_with_cash_target(self):
-        holding = Holding("AAPL", 10, price=100.0)
+        holding = Holding("VTI", 10, price=100.0)
         asset_class = LeafAssetClass("US Equity", target_weight=1.0, children=[holding])
         portfolio = Portfolio(
             cash_value=1000.0, cash_target=0.2, children=[asset_class]
@@ -25,14 +25,14 @@ class TestPortfolio(unittest.TestCase):
         self.assertEqual(portfolio.cash_target, 0.2)
 
     def test_portfolio_value_sums_children_and_cash(self):
-        holding = Holding("AAPL", 10, price=100.0)
+        holding = Holding("VTI", 10, price=100.0)
         asset_class = LeafAssetClass("US Equity", target_weight=1.0, children=[holding])
         portfolio = Portfolio(cash_value=1000.0, children=[asset_class])
 
         self.assertEqual(portfolio.value, 2000.0)  # 1000 (cash) + 1000 (holdings)
 
     def test_portfolio_rejects_invalid_target_weights(self):
-        holding = Holding("AAPL", 10, price=100.0)
+        holding = Holding("VTI", 10, price=100.0)
         asset_class = LeafAssetClass("US Equity", target_weight=0.4, children=[holding])
         with self.assertRaises(ValueError) as cm:
             Portfolio(children=[asset_class])
@@ -41,15 +41,15 @@ class TestPortfolio(unittest.TestCase):
         )
 
     def test_portfolio_with_nested_categories(self):
-        holding1 = Holding("AAPL", 10, price=100.0)
-        holding2 = Holding("MSFT", 10, price=100.0)
+        holding1 = Holding("VTI", 10, price=100.0)
+        holding2 = Holding("VXUS", 10, price=100.0)
         us_equity = LeafAssetClass("US Equity", target_weight=0.4, children=[holding1])
         intl_equity = LeafAssetClass(
             "International Equity", target_weight=0.2, children=[holding2]
         )
         equity = CompositeAssetClass("Equity", [us_equity, intl_equity])
 
-        holding3 = Holding("AGG", 10, price=100.0)
+        holding3 = Holding("BND", 10, price=100.0)
         fixed_income = LeafAssetClass(
             "Fixed Income", target_weight=0.4, children=[holding3]
         )
@@ -59,7 +59,7 @@ class TestPortfolio(unittest.TestCase):
         self.assertEqual(portfolio.value, 4000.0)  # 1000 (cash) + 3000 (holdings)
 
     def test_excess_cash_calculation(self):
-        holding = Holding("AAPL", 10, price=100.0)
+        holding = Holding("VTI", 10, price=100.0)
         asset_class = LeafAssetClass("US Equity", target_weight=1.0, children=[holding])
         portfolio = Portfolio(
             cash_value=1000.0, cash_target=500.0, children=[asset_class]
@@ -68,7 +68,7 @@ class TestPortfolio(unittest.TestCase):
         self.assertEqual(portfolio.excess_cash, 500.0)  # 1000 - 500 target
 
     def test_excess_cash_with_no_target(self):
-        holding = Holding("AAPL", 10, price=100.0)
+        holding = Holding("VTI", 10, price=100.0)
         asset_class = LeafAssetClass("US Equity", target_weight=1.0, children=[holding])
         portfolio = Portfolio(
             cash_value=1000.0, cash_target=None, children=[asset_class]
@@ -79,7 +79,7 @@ class TestPortfolio(unittest.TestCase):
         )  # All cash is excess when no target
 
     def test_excess_cash_below_target(self):
-        holding = Holding("AAPL", 10, price=100.0)
+        holding = Holding("VTI", 10, price=100.0)
         asset_class = LeafAssetClass("US Equity", target_weight=1.0, children=[holding])
         portfolio = Portfolio(
             cash_value=300.0, cash_target=500.0, children=[asset_class]
@@ -88,7 +88,7 @@ class TestPortfolio(unittest.TestCase):
         self.assertEqual(portfolio.excess_cash, 0.0)  # No excess when below target
 
     def test_investible_value(self):
-        holding = Holding("AAPL", 10, price=100.0)
+        holding = Holding("VTI", 10, price=100.0)
         asset_class = LeafAssetClass("US Equity", target_weight=1.0, children=[holding])
         portfolio = Portfolio(
             cash_value=1000.0, cash_target=500.0, children=[asset_class]
@@ -98,7 +98,7 @@ class TestPortfolio(unittest.TestCase):
         self.assertEqual(portfolio.investible_value, 1500.0)
 
     def test_invest_excess_cash(self):
-        holding = Holding("AAPL", 10, price=100.0)
+        holding = Holding("VTI", 10, price=100.0)
         asset_class = LeafAssetClass("US Equity", target_weight=1.0, children=[holding])
         portfolio = Portfolio(
             cash_value=1000.0, cash_target=500.0, children=[asset_class]
@@ -114,7 +114,7 @@ class TestPortfolio(unittest.TestCase):
         self.assertEqual(portfolio.investments.value, 1500.0)
 
     def test_invest_excess_cash_with_no_target(self):
-        holding = Holding("AAPL", 10, price=100.0)
+        holding = Holding("VTI", 10, price=100.0)
         asset_class = LeafAssetClass("US Equity", target_weight=1.0, children=[holding])
         portfolio = Portfolio(
             cash_value=1000.0, cash_target=None, children=[asset_class]
@@ -129,18 +129,18 @@ class TestPortfolio(unittest.TestCase):
 
     def test_sell_overweight_with_overweight_asset(self):
         # Create a portfolio with an overweight asset
-        # AAPL value = 6000, which is 60% of investible value, but target is 40% (so it's 50% overweight)
-        holding1 = Holding("AAPL", 60, price=100.0)  # 6000
+        # VTI value = 6000, which is 60% of investible value, but target is 40% (so it's 50% overweight)
+        holding1 = Holding("VTI", 60, price=100.0)  # 6000
         us_equity = LeafAssetClass("US Equity", target_weight=0.4, children=[holding1])
 
-        # MSFT value = 1000, which is 10% of investible value, but target is 20% (so it's 50% underweight)
-        holding2 = Holding("MSFT", 10, price=100.0)  # 1000
+        # VXUS value = 1000, which is 10% of investible value, but target is 20% (so it's 50% underweight)
+        holding2 = Holding("VXUS", 10, price=100.0)  # 1000
         intl_equity = LeafAssetClass(
             "International Equity", target_weight=0.2, children=[holding2]
         )
 
-        # AGG value = 3000, which is 30% of investible value, but target is 40% (so it's 25% underweight)
-        holding3 = Holding("AGG", 30, price=100.0)  # 3000
+        # BND value = 3000, which is 30% of investible value, but target is 40% (so it's 25% underweight)
+        holding3 = Holding("BND", 30, price=100.0)  # 3000
         fixed_income = LeafAssetClass(
             "Fixed Income", target_weight=0.4, children=[holding3]
         )
@@ -152,9 +152,9 @@ class TestPortfolio(unittest.TestCase):
         )
 
         # Portfolio structure:
-        # - US Equity (AAPL): 6000 (60%) target 40% -> overweight
-        # - International Equity (MSFT): 1000 (10%) target 20% -> underweight
-        # - Fixed Income (AGG): 3000 (30%) target 40% -> underweight
+        # - US Equity (VTI): 6000 (60%) target 40% -> overweight
+        # - International Equity (VXUS): 1000 (10%) target 20% -> underweight
+        # - Fixed Income (BND): 3000 (30%) target 40% -> underweight
         # Total: 10000 (100%)
 
         # Execute sell_overweight
@@ -164,38 +164,38 @@ class TestPortfolio(unittest.TestCase):
         self.assertFalse(transaction_log.empty)
         self.assertGreater(len(transaction_log.transactions), 0)
 
-        # Verify all transactions are SELL type and only for AAPL
+        # Verify all transactions are SELL type and only for VTI
         for transaction in transaction_log.transactions:
             self.assertEqual(transaction.type, BuySell.SELL)
-            self.assertEqual(transaction.ticker, "AAPL")
+            self.assertEqual(transaction.ticker, "VTI")
 
         # Calculate total shares sold
         total_shares_sold = sum(t.shares for t in transaction_log.transactions)
 
         # Verify portfolio state after selling
-        self.assertEqual(holding1.shares, 60 - total_shares_sold)  # AAPL reduced
-        self.assertEqual(holding2.shares, 10)  # MSFT unchanged
-        self.assertEqual(holding3.shares, 30)  # AGG unchanged
+        self.assertEqual(holding1.shares, 60 - total_shares_sold)  # VTI reduced
+        self.assertEqual(holding2.shares, 10)  # VXUS unchanged
+        self.assertEqual(holding3.shares, 30)  # BND unchanged
         self.assertEqual(
             portfolio.cash_value, total_shares_sold * 100.0
         )  # Cash increased
 
-        # Verify that AAPL is no longer overweight or at least less overweight
+        # Verify that VTI is no longer overweight or at least less overweight
         current_weight = holding1.value / portfolio.investible_value
         # Should be closer to target than original 60%
         self.assertLess(current_weight, 0.6)
 
     def test_sell_overweight_with_no_overweight_assets(self):
         # Create a balanced portfolio
-        holding1 = Holding("AAPL", 40, price=100.0)  # 4000 - exactly at target
+        holding1 = Holding("VTI", 40, price=100.0)  # 4000 - exactly at target
         us_equity = LeafAssetClass("US Equity", target_weight=0.4, children=[holding1])
 
-        holding2 = Holding("MSFT", 20, price=100.0)  # 2000 - exactly at target
+        holding2 = Holding("VXUS", 20, price=100.0)  # 2000 - exactly at target
         intl_equity = LeafAssetClass(
             "International Equity", target_weight=0.2, children=[holding2]
         )
 
-        holding3 = Holding("AGG", 40, price=100.0)  # 4000 - exactly at target
+        holding3 = Holding("BND", 40, price=100.0)  # 4000 - exactly at target
         fixed_income = LeafAssetClass(
             "Fixed Income", target_weight=0.4, children=[holding3]
         )
@@ -222,15 +222,15 @@ class TestPortfolio(unittest.TestCase):
     def test_rebalance_sells_all_overweight_followed_by_invest(self):
         """Test that sell_overweight sells all overweight assets and then invests the cash."""
         # Create overweight and underweight assets
-        holding1 = Holding("AAPL", 60, price=100.0)  # 6000 - overweight
+        holding1 = Holding("VTI", 60, price=100.0)  # 6000 - overweight
         us_equity = LeafAssetClass("US Equity", target_weight=0.4, children=[holding1])
 
-        holding2 = Holding("MSFT", 10, price=100.0)  # 1000 - underweight
+        holding2 = Holding("VXUS", 10, price=100.0)  # 1000 - underweight
         intl_equity = LeafAssetClass(
             "International Equity", target_weight=0.2, children=[holding2]
         )
 
-        holding3 = Holding("AGG", 30, price=100.0)  # 3000 - underweight
+        holding3 = Holding("BND", 30, price=100.0)  # 3000 - underweight
         fixed_income = LeafAssetClass(
             "Fixed Income", target_weight=0.4, children=[holding3]
         )
@@ -248,10 +248,10 @@ class TestPortfolio(unittest.TestCase):
         self.assertFalse(transaction_log.empty)
         self.assertGreater(len(transaction_log.transactions), 0)
 
-        # Verify all transactions are SELL type and for AAPL
+        # Verify all transactions are SELL type and for VTI
         for transaction in transaction_log.transactions:
             self.assertEqual(transaction.type, BuySell.SELL)
-            self.assertEqual(transaction.ticker, "AAPL")
+            self.assertEqual(transaction.ticker, "VTI")
 
         # Calculate total cash generated from selling
         total_cash_from_selling = portfolio.cash_value
@@ -277,24 +277,24 @@ class TestPortfolio(unittest.TestCase):
         # Cash should be close to 0 (or exactly 0 if everything could be invested)
         self.assertLess(portfolio.cash_value, total_cash_from_selling)
 
-        # Verify either MSFT or AGG (or both) increased in shares
+        # Verify either VXUS or BND (or both) increased in shares
         self.assertTrue(
             holding2.shares > 10 or holding3.shares > 30,
-            "Either MSFT or AGG should have increased in shares",
+            "Either VXUS or BND should have increased in shares",
         )
 
     def test_divest_sells_until_cash_target(self):
         """Test that divest sells overweight assets until cash target is met."""
         # Create overweight and underweight assets
-        holding1 = Holding("AAPL", 60, price=100.0)  # 6000 - overweight
+        holding1 = Holding("VTI", 60, price=100.0)  # 6000 - overweight
         us_equity = LeafAssetClass("US Equity", target_weight=0.4, children=[holding1])
 
-        holding2 = Holding("MSFT", 10, price=100.0)  # 1000 - underweight
+        holding2 = Holding("VXUS", 10, price=100.0)  # 1000 - underweight
         intl_equity = LeafAssetClass(
             "International Equity", target_weight=0.2, children=[holding2]
         )
 
-        holding3 = Holding("AGG", 30, price=100.0)  # 3000 - underweight
+        holding3 = Holding("BND", 30, price=100.0)  # 3000 - underweight
         fixed_income = LeafAssetClass(
             "Fixed Income", target_weight=0.4, children=[holding3]
         )
@@ -306,9 +306,9 @@ class TestPortfolio(unittest.TestCase):
         )
 
         # Portfolio structure:
-        # - US Equity (AAPL): 6000 (60%) target 40% -> overweight
-        # - International Equity (MSFT): 1000 (10%) target 20% -> underweight
-        # - Fixed Income (AGG): 3000 (30%) target 40% -> underweight
+        # - US Equity (VTI): 6000 (60%) target 40% -> overweight
+        # - International Equity (VXUS): 1000 (10%) target 20% -> underweight
+        # - Fixed Income (BND): 3000 (30%) target 40% -> underweight
         # Total: 10000 (100%)
 
         # Execute divest
@@ -316,18 +316,18 @@ class TestPortfolio(unittest.TestCase):
 
         # Verify sell transactions occurred and stopped when cash target was met
         self.assertFalse(transaction_log.empty)
-        # We expect to sell 2 shares of AAPL to reach the 200 cash target
+        # We expect to sell 2 shares of VTI to reach the 200 cash target
         self.assertEqual(
             len([t for t in transaction_log.transactions if t.type == BuySell.SELL]), 2
         )
         self.assertEqual(portfolio.cash_value, 200.0)
 
-        # Verify all sell transactions are SELL type and only for AAPL
+        # Verify all sell transactions are SELL type and only for VTI
         for transaction in [
             t for t in transaction_log.transactions if t.type == BuySell.SELL
         ]:
             self.assertEqual(transaction.type, BuySell.SELL)
-            self.assertEqual(transaction.ticker, "AAPL")
+            self.assertEqual(transaction.ticker, "VTI")
 
         # Verify no buy transactions occurred
         buy_transactions = [
@@ -342,15 +342,15 @@ class TestPortfolio(unittest.TestCase):
     def test_divest_sells_all_overweight_when_cash_target_high(self):
         """Test that divest sells all overweight assets when cash target is higher than total value."""
         # Create overweight and underweight assets
-        holding1 = Holding("AAPL", 60, price=100.0)  # 6000 - overweight
+        holding1 = Holding("VTI", 60, price=100.0)  # 6000 - overweight
         us_equity = LeafAssetClass("US Equity", target_weight=0.4, children=[holding1])
 
-        holding2 = Holding("MSFT", 10, price=100.0)  # 1000 - underweight
+        holding2 = Holding("VXUS", 10, price=100.0)  # 1000 - underweight
         intl_equity = LeafAssetClass(
             "International Equity", target_weight=0.2, children=[holding2]
         )
 
-        holding3 = Holding("AGG", 30, price=100.0)  # 3000 - underweight
+        holding3 = Holding("BND", 30, price=100.0)  # 3000 - underweight
         fixed_income = LeafAssetClass(
             "Fixed Income", target_weight=0.4, children=[holding3]
         )
@@ -362,9 +362,9 @@ class TestPortfolio(unittest.TestCase):
         )
 
         # Portfolio structure:
-        # - US Equity (AAPL): 6000 (60%) target 40% -> overweight
-        # - International Equity (MSFT): 1000 (10%) target 20% -> underweight
-        # - Fixed Income (AGG): 3000 (30%) target 40% -> underweight
+        # - US Equity (VTI): 6000 (60%) target 40% -> overweight
+        # - International Equity (VXUS): 1000 (10%) target 20% -> underweight
+        # - Fixed Income (BND): 3000 (30%) target 40% -> underweight
         # Total: 10000 (100%)
 
         # Execute divest
