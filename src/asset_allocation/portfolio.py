@@ -1,6 +1,6 @@
 from typing import Optional, Union, List
 
-from asset_allocation.transaction import TransactionLog
+from asset_allocation.transaction import Transactions
 from .asset_class import AssetClass, CompositeAssetClass
 from .snapshot import PortfolioSnapshot, PortfolioSnapshotter
 
@@ -51,41 +51,39 @@ class Portfolio:
         return self.investments.value + self.excess_cash
 
     def invest_excess_cash(
-        self, transaction_log: Optional[TransactionLog] = None
-    ) -> TransactionLog:
+        self, transactions: Optional[Transactions] = None
+    ) -> Transactions:
         """While there is excess cash, invest it in the portfolio."""
-        if transaction_log is None:
-            transaction_log = TransactionLog()
+        if transactions is None:
+            transactions = Transactions()
         while self.excess_cash > 0:
             transaction = self.investments.buy(self.excess_cash, self.investible_value)
             if transaction:
                 self.cash_value -= transaction.amount
-                transaction_log.append(transaction)
+                transactions.append(transaction)
             else:
                 break
-        return transaction_log
+        return transactions
 
     def sell_overweight(
-        self, transaction_log: Optional[TransactionLog] = None
-    ) -> TransactionLog:
+        self, transactions: Optional[Transactions] = None
+    ) -> Transactions:
         """While there are overweight holdings, sell one share of each."""
-        if transaction_log is None:
-            transaction_log = TransactionLog()
+        if transactions is None:
+            transactions = Transactions()
         while True:
             transaction = self.investments.sell_overweight(self.investible_value)
             if transaction:
                 self.cash_value += transaction.amount
-                transaction_log.append(transaction)
+                transactions.append(transaction)
             else:
                 break
-        return transaction_log
+        return transactions
 
-    def divest(
-        self, transaction_log: Optional[TransactionLog] = None
-    ) -> TransactionLog:
+    def divest(self, transactions: Optional[Transactions] = None) -> Transactions:
         """Sell overweight holdings until cash target is met."""
-        if transaction_log is None:
-            transaction_log = TransactionLog()
+        if transactions is None:
+            transactions = Transactions()
 
         # Calculate investible_value once before the loop
         initial_investible_value = self.investible_value
@@ -95,11 +93,11 @@ class Portfolio:
             transaction = self.investments.sell(initial_investible_value)
             if transaction:
                 self.cash_value += transaction.amount
-                transaction_log.append(transaction)
+                transactions.append(transaction)
             else:
                 # No assets left to sell to reach target
                 break
-        return transaction_log
+        return transactions
 
     def snapshot(self) -> PortfolioSnapshot:
         """Create a snapshot of the portfolio structure and values.

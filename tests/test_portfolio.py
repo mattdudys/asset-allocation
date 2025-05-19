@@ -158,26 +158,23 @@ class TestPortfolio(unittest.TestCase):
         # Total: 10000 (100%)
 
         # Execute sell_overweight
-        transaction_log = portfolio.sell_overweight()
+        transactions = portfolio.sell_overweight()
 
         # Verify transactions occurred (exact count depends on implementation)
-        self.assertFalse(transaction_log.empty)
-        self.assertGreater(len(transaction_log.transactions), 0)
+        self.assertFalse(transactions.empty)
+        self.assertGreater(len(transactions), 0)
 
         # Verify all transactions are SELL type and only for VTI
-        for transaction in transaction_log.transactions:
+        for transaction in transactions:
             self.assertEqual(transaction.type, BuySell.SELL)
             self.assertEqual(transaction.ticker, "VTI")
 
-        # Calculate total shares sold
-        total_shares_sold = sum(t.shares for t in transaction_log.transactions)
-
         # Verify portfolio state after selling
-        self.assertEqual(holding1.shares, 60 - total_shares_sold)  # VTI reduced
+        self.assertEqual(holding1.shares, 60 - transactions.total_shares)  # VTI reduced
         self.assertEqual(holding2.shares, 10)  # VXUS unchanged
         self.assertEqual(holding3.shares, 30)  # BND unchanged
         self.assertEqual(
-            portfolio.cash_value, total_shares_sold * 100.0
+            portfolio.cash_value, transactions.total_amount
         )  # Cash increased
 
         # Verify that VTI is no longer overweight or at least less overweight
@@ -207,11 +204,10 @@ class TestPortfolio(unittest.TestCase):
         )
 
         # Execute sell_overweight
-        transaction_log = portfolio.sell_overweight()
+        transactions = portfolio.sell_overweight()
 
         # Verify no transaction occurred
-        self.assertTrue(transaction_log.empty)
-        self.assertEqual(len(transaction_log.transactions), 0)
+        self.assertTrue(transactions.empty)
 
         # Verify portfolio state is unchanged
         self.assertEqual(holding1.shares, 40)
@@ -242,40 +238,34 @@ class TestPortfolio(unittest.TestCase):
         )
 
         # First sell overweight assets
-        transaction_log = portfolio.sell_overweight()
+        transactions = portfolio.sell_overweight()
 
         # Verify sell transactions occurred (exact count depends on implementation)
-        self.assertFalse(transaction_log.empty)
-        self.assertGreater(len(transaction_log.transactions), 0)
+        self.assertFalse(transactions.empty)
 
         # Verify all transactions are SELL type and for VTI
-        for transaction in transaction_log.transactions:
+        for transaction in transactions:
             self.assertEqual(transaction.type, BuySell.SELL)
             self.assertEqual(transaction.ticker, "VTI")
 
         # Calculate total cash generated from selling
-        total_cash_from_selling = portfolio.cash_value
-        self.assertGreater(total_cash_from_selling, 0)
+        self.assertGreater(portfolio.cash_value, 0)
 
         # Save the number of transactions before investing
-        num_transactions_before_invest = len(transaction_log.transactions)
+        num_transactions_before_invest = len(transactions)
 
         # Now invest the excess cash from selling
-        transaction_log = portfolio.invest_excess_cash(transaction_log)
+        transactions = portfolio.invest_excess_cash(transactions)
 
         # Verify buy transactions occurred
-        self.assertGreater(
-            len(transaction_log.transactions), num_transactions_before_invest
-        )
+        self.assertGreater(len(transactions), num_transactions_before_invest)
 
         # Verify the new transactions are BUY type
-        for i in range(
-            num_transactions_before_invest, len(transaction_log.transactions)
-        ):
-            self.assertEqual(transaction_log.transactions[i].type, BuySell.BUY)
+        for i in range(num_transactions_before_invest, len(transactions)):
+            self.assertEqual(transactions[i].type, BuySell.BUY)
 
         # Cash should be close to 0 (or exactly 0 if everything could be invested)
-        self.assertLess(portfolio.cash_value, total_cash_from_selling)
+        self.assertLess(portfolio.cash_value, transactions.sells().total_amount)
 
         # Verify either VXUS or BND (or both) increased in shares
         self.assertTrue(
@@ -312,28 +302,19 @@ class TestPortfolio(unittest.TestCase):
         # Total: 10000 (100%)
 
         # Execute divest
-        transaction_log = portfolio.divest()
+        transactions = portfolio.divest()
 
         # Verify sell transactions occurred and stopped when cash target was met
-        self.assertFalse(transaction_log.empty)
+        self.assertFalse(transactions.empty)
         # We expect to sell 2 shares of VTI to reach the 200 cash target
-        self.assertEqual(
-            len([t for t in transaction_log.transactions if t.type == BuySell.SELL]), 2
-        )
+        self.assertEqual(transactions.sells().ticker("VTI").total_shares, 2)
         self.assertEqual(portfolio.cash_value, 200.0)
 
         # Verify all sell transactions are SELL type and only for VTI
-        for transaction in [
-            t for t in transaction_log.transactions if t.type == BuySell.SELL
-        ]:
-            self.assertEqual(transaction.type, BuySell.SELL)
-            self.assertEqual(transaction.ticker, "VTI")
+        self.assertEqual(len(transactions), len(transactions.sells().ticker("VTI")))
 
         # Verify no buy transactions occurred
-        buy_transactions = [
-            t for t in transaction_log.transactions if t.type == BuySell.BUY
-        ]
-        self.assertEqual(len(buy_transactions), 0)
+        self.assertTrue(transactions.buys().empty)
 
         # Verify shares of underweight assets did not change
         self.assertEqual(holding2.shares, 10)
@@ -368,20 +349,15 @@ class TestPortfolio(unittest.TestCase):
         # Total: 10000 (100%)
 
         # Execute divest
-        transaction_log = portfolio.divest()
+        transactions = portfolio.divest()
 
         # All investments should be sold and cash should be 10000.
         self.assertEqual(portfolio.investments.value, 0.0)
         self.assertEqual(portfolio.cash_value, 10000.0)
 
         # Verify all transactions are SELL and total sold is 10000.
-        self.assertFalse(transaction_log.empty)
-        self.assertEqual(
-            sum(
-                t.amount for t in transaction_log.transactions if t.type == BuySell.SELL
-            ),
-            10000.0,
-        )
+        self.assertTrue(transactions.buys().empty)
+        self.assertEqual(transactions.sells().total_amount, 10000.0)
 
 
 if __name__ == "__main__":

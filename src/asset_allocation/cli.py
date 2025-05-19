@@ -8,7 +8,7 @@ import pandas as pd
 from asset_allocation.portfolio import Portfolio
 from asset_allocation.quote_service import YFinanceQuoteService
 from asset_allocation.snapshot import PortfolioSnapshot
-from asset_allocation.transaction import TransactionLog
+from asset_allocation.transaction import Transactions
 from .portfolio_loader import PortfolioLoader
 
 
@@ -29,7 +29,7 @@ def print_snapshot(snapshot: PortfolioSnapshot):
     print(df.to_string(index=False))
 
 
-def print_transaction_log(transaction_log: TransactionLog):
+def print_transactions(transaction_log: Transactions):
     df = transaction_log.to_dataframe()
     if not df.empty:
         print("Transactions:")
@@ -56,7 +56,7 @@ def invest_excess_cash(portfolio: Portfolio):
             f"Invested ${starting_snapshot.cash - ending_snapshot.cash:,.2f} of excess cash."
         )
         print()
-        print_transaction_log(transaction_log)
+        print_transactions(transaction_log)
         print()
         print("=== After ===")
         print_snapshot(ending_snapshot)
@@ -72,7 +72,7 @@ def divest_portfolio(portfolio: Portfolio):
     transaction_log = portfolio.divest()
     ending_snapshot = portfolio.snapshot()
     print()
-    print_transaction_log(transaction_log)
+    print_transactions(transaction_log)
     print()
     print("=== After ===")
     print_snapshot(ending_snapshot)
@@ -88,7 +88,7 @@ def rebalance(portfolio: Portfolio):
     transaction_log = portfolio.sell_overweight()
     snapshot2 = portfolio.snapshot()
     print()
-    print_transaction_log(transaction_log)
+    print_transactions(transaction_log)
     print()
     print("=== After selling overweight holdings ===")
     print_snapshot(snapshot2)
@@ -101,7 +101,7 @@ def rebalance(portfolio: Portfolio):
         ending_snapshot = portfolio.snapshot()
         print(f"Invested ${snapshot2.cash - ending_snapshot.cash:,.2f} of excess cash.")
         print()
-        print_transaction_log(transaction_log)
+        print_transactions(transaction_log)
         print()
         print("=== After ===")
         print_snapshot(ending_snapshot)
