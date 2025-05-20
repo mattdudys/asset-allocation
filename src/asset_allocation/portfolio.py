@@ -1,5 +1,6 @@
 from typing import Optional, Union, List
 
+from asset_allocation.holding import Holding
 from asset_allocation.transaction import Transactions
 from .asset_class import AssetClass, CompositeAssetClass
 from .snapshot import PortfolioSnapshot, PortfolioSnapshotter
@@ -11,6 +12,7 @@ class Portfolio:
     cash_value: float
     cash_target: float
     investments: AssetClass
+    _holdings_by_ticker: dict[str, Holding]
 
     def __init__(
         self,
@@ -24,6 +26,7 @@ class Portfolio:
             raise ValueError("Portfolio must have at least one asset class or category")
         self.investments = CompositeAssetClass("Total", children)
         self._validate_target_weights()
+        self._holdings_by_ticker = {h.ticker: h for h in self.investments.holdings}
 
     def _validate_target_weights(self):
         """Validate that the sum of target weights is 1.0."""
@@ -49,6 +52,10 @@ class Portfolio:
     def investible_value(self):
         """The value of the portfolio's investments and excess cash."""
         return self.investments.value + self.excess_cash
+
+    def holding(self, ticker: str) -> Union[Holding, None]:
+        """Get a holding by its ticker symbol."""
+        return self._holdings_by_ticker.get(ticker)
 
     def invest_excess_cash(
         self, transactions: Optional[Transactions] = None

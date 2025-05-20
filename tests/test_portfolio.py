@@ -114,10 +114,16 @@ class TestPortfolio(unittest.TestCase):
         self.assertEqual(portfolio.investments.value, 1500.0)
 
     def test_invest_excess_cash_with_no_target(self):
-        holding = Holding("VTI", 10, price=100.0)
-        asset_class = LeafAssetClass("US Equity", target_weight=1.0, children=[holding])
         portfolio = Portfolio(
-            cash_value=1000.0, cash_target=None, children=[asset_class]
+            cash_value=1000.0,
+            cash_target=None,
+            children=[
+                LeafAssetClass(
+                    "US Equity",
+                    target_weight=1.0,
+                    children=[Holding("VTI", 10, price=100.0)],
+                )
+            ],
         )
 
         portfolio.invest_excess_cash()
@@ -128,57 +134,58 @@ class TestPortfolio(unittest.TestCase):
         self.assertEqual(portfolio.value, 2000.0)
 
     def test_sell_overweight_with_overweight_asset(self):
-        # Create a portfolio with an overweight asset
-        # VTI value = 6000, which is 60% of investible value, but target is 40% (so it's 50% overweight)
-        holding1 = Holding("VTI", 60, price=100.0)  # 6000
-        us_equity = LeafAssetClass("US Equity", target_weight=0.4, children=[holding1])
-
-        # VXUS value = 1000, which is 10% of investible value, but target is 20% (so it's 50% underweight)
-        holding2 = Holding("VXUS", 10, price=100.0)  # 1000
-        intl_equity = LeafAssetClass(
-            "International Equity", target_weight=0.2, children=[holding2]
-        )
-
-        # BND value = 3000, which is 30% of investible value, but target is 40% (so it's 25% underweight)
-        holding3 = Holding("BND", 30, price=100.0)  # 3000
-        fixed_income = LeafAssetClass(
-            "Fixed Income", target_weight=0.4, children=[holding3]
-        )
-
-        portfolio = Portfolio(
-            cash_value=0.0,  # No cash initially
-            cash_target=0.0,  # No cash target
-            children=[us_equity, intl_equity, fixed_income],
-        )
-
-        # Portfolio structure:
-        # - US Equity (VTI): 6000 (60%) target 40% -> overweight
-        # - International Equity (VXUS): 1000 (10%) target 20% -> underweight
-        # - Fixed Income (BND): 3000 (30%) target 40% -> underweight
+        # US Equity (VTI): 6000 (60%) target 40% -> overweight
+        # International Equity (VXUS): 1000 (10%) target 20% -> underweight
+        # Fixed Income (BND): 3000 (30%) target 40% -> underweight
         # Total: 10000 (100%)
+        portfolio = Portfolio(
+            cash_value=0.0,
+            cash_target=0.0,
+            children=[
+                CompositeAssetClass(
+                    "Equity",
+                    children=[
+                        LeafAssetClass(
+                            "US Equity",
+                            target_weight=0.4,
+                            children=[Holding("VTI", 60, price=100.0)],
+                        ),
+                        LeafAssetClass(
+                            "International Equity",
+                            target_weight=0.2,
+                            children=[Holding("VXUS", 10, price=100.0)],
+                        ),
+                    ],
+                ),
+                LeafAssetClass(
+                    "Fixed Income",
+                    target_weight=0.4,
+                    children=[Holding("BND", 30, price=100.0)],
+                ),
+            ],
+        )
 
         # Execute sell_overweight
         transactions = portfolio.sell_overweight()
 
         # Verify transactions occurred (exact count depends on implementation)
         self.assertFalse(transactions.empty)
-        self.assertGreater(len(transactions), 0)
 
         # Verify all transactions are SELL type and only for VTI
-        for transaction in transactions:
-            self.assertEqual(transaction.type, BuySell.SELL)
-            self.assertEqual(transaction.ticker, "VTI")
+        self.assertEqual(len(transactions), len(transactions.sells().ticker("VTI")))
 
         # Verify portfolio state after selling
-        self.assertEqual(holding1.shares, 60 - transactions.total_shares)  # VTI reduced
-        self.assertEqual(holding2.shares, 10)  # VXUS unchanged
-        self.assertEqual(holding3.shares, 30)  # BND unchanged
+        self.assertEqual(
+            portfolio.holding("VTI").shares, 60 - transactions.total_shares
+        )  # VTI reduced
+        self.assertEqual(portfolio.holding("VXUS").shares, 10)  # VXUS unchanged
+        self.assertEqual(portfolio.holding("BND").shares, 30)  # BND unchanged
         self.assertEqual(
             portfolio.cash_value, transactions.total_amount
         )  # Cash increased
 
         # Verify that VTI is no longer overweight or at least less overweight
-        current_weight = holding1.value / portfolio.investible_value
+        current_weight = portfolio.holding("VTI").value / portfolio.investible_value
         # Should be closer to target than original 60%
         self.assertLess(current_weight, 0.6)
 
