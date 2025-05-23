@@ -255,21 +255,26 @@ class TestPortfolio(unittest.TestCase):
             cash_value=0.0,
             cash_target=0.0,
             children=[
-                LeafAssetClass(
-                    "US Equity",
-                    target_weight=0.4,
-                    children=[Holding("VTI", 40, price=100.0)],
-                ),  # 4000 - exactly at target
-                LeafAssetClass(
-                    "International Equity",
-                    target_weight=0.2,
-                    children=[Holding("VXUS", 20, price=100.0)],
-                ),  # 2000 - exactly at target
+                CompositeAssetClass(
+                    "Equity",
+                    children=[
+                        LeafAssetClass(
+                            "US Equity",
+                            target_weight=0.4,
+                            children=[Holding("VTI", 40, price=100.0)],
+                        ),
+                        LeafAssetClass(
+                            "International Equity",
+                            target_weight=0.2,
+                            children=[Holding("VXUS", 20, price=100.0)],
+                        ),
+                    ],
+                ),
                 LeafAssetClass(
                     "Fixed Income",
                     target_weight=0.4,
                     children=[Holding("BND", 40, price=100.0)],
-                ),  # 4000 - exactly at target
+                ),
             ],
         )
 
@@ -291,15 +296,20 @@ class TestPortfolio(unittest.TestCase):
             cash_value=0.0,
             cash_target=0.0,
             children=[
-                LeafAssetClass(
-                    "US Equity",
-                    target_weight=0.4,
-                    children=[Holding("VTI", 60, price=100.0)],
-                ),
-                LeafAssetClass(
-                    "International Equity",
-                    target_weight=0.2,
-                    children=[Holding("VXUS", 10, price=100.0)],
+                CompositeAssetClass(
+                    "Equity",
+                    children=[
+                        LeafAssetClass(
+                            "US Equity",
+                            target_weight=0.4,
+                            children=[Holding("VTI", 60, price=100.0)],
+                        ),
+                        LeafAssetClass(
+                            "International Equity",
+                            target_weight=0.2,
+                            children=[Holding("VXUS", 10, price=100.0)],
+                        ),
+                    ],
                 ),
                 LeafAssetClass(
                     "Fixed Income",
@@ -352,15 +362,20 @@ class TestPortfolio(unittest.TestCase):
             cash_value=0.0,
             cash_target=200.0,  # Set a cash target
             children=[
-                LeafAssetClass(
-                    "US Equity",
-                    target_weight=0.4,
-                    children=[Holding("VTI", 60, price=100.0)],
-                ),
-                LeafAssetClass(
-                    "International Equity",
-                    target_weight=0.2,
-                    children=[Holding("VXUS", 10, price=100.0)],
+                CompositeAssetClass(
+                    "Equity",
+                    children=[
+                        LeafAssetClass(
+                            "US Equity",
+                            target_weight=0.4,
+                            children=[Holding("VTI", 60, price=100.0)],
+                        ),
+                        LeafAssetClass(
+                            "International Equity",
+                            target_weight=0.2,
+                            children=[Holding("VXUS", 10, price=100.0)],
+                        ),
+                    ],
                 ),
                 LeafAssetClass(
                     "Fixed Income",
@@ -401,15 +416,20 @@ class TestPortfolio(unittest.TestCase):
             cash_value=0.0,
             cash_target=15000.0,  # Set a cash target higher than total value
             children=[
-                LeafAssetClass(
-                    "US Equity",
-                    target_weight=0.4,
-                    children=[Holding("VTI", 60, price=100.0)],
-                ),
-                LeafAssetClass(
-                    "International Equity",
-                    target_weight=0.2,
-                    children=[Holding("VXUS", 10, price=100.0)],
+                CompositeAssetClass(
+                    "Equity",
+                    children=[
+                        LeafAssetClass(
+                            "US Equity",
+                            target_weight=0.4,
+                            children=[Holding("VTI", 60, price=100.0)],
+                        ),
+                        LeafAssetClass(
+                            "International Equity",
+                            target_weight=0.2,
+                            children=[Holding("VXUS", 10, price=100.0)],
+                        ),
+                    ],
                 ),
                 LeafAssetClass(
                     "Fixed Income",

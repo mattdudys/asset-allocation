@@ -187,7 +187,7 @@ class CompositeAssetClass(AssetClass):
             reverse=True,
         )
         for child in children:
-            transaction = child.sell()
+            transaction = child.sell(investable_value)
             if transaction:
                 return transaction
         return None
@@ -248,8 +248,11 @@ class LeafAssetClass(AssetClass):
         """
         return self.children[0].buy(budget)
 
-    def sell(self) -> Optional[Transaction]:
+    def sell(self, investable_value: float) -> Optional[Transaction]:
         """Sell one share of this asset class's least preferred holding, or a fractional share if less than one share.
+
+        Args:
+            investable_value: the investable, non-cash value of the portfolio
 
         Returns:
             A Transaction if there was a share to sell, otherwise None
@@ -264,4 +267,4 @@ class LeafAssetClass(AssetClass):
         """Attempt to sell one share of this asset class if it is overweight."""
         if not self.overweight(investable_value):
             return None
-        return self.sell()
+        return self.sell(investable_value)

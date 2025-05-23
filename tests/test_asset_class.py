@@ -118,7 +118,7 @@ class TestAssetClass(unittest.TestCase):
             "Equity", target_weight=0.6, children=[holding1, holding2]
         )
 
-        transaction = asset_class.sell()
+        transaction = asset_class.sell(10000.0)
         self.assertIsNotNone(transaction)
         self.assertEqual(holding1.shares, 10)  # First holding unchanged
         self.assertEqual(holding2.shares, 9)  # Second holding reduced by 1
@@ -130,7 +130,7 @@ class TestAssetClass(unittest.TestCase):
             "Equity", target_weight=0.6, children=[holding1, holding2]
         )
 
-        transaction = asset_class.sell()
+        transaction = asset_class.sell(10000.0)
         self.assertIsNotNone(transaction)
         self.assertEqual(holding1.shares, 10)  # First holding unchanged
         self.assertEqual(holding2.shares, 0)  # Second holding reduced to 0
@@ -142,7 +142,7 @@ class TestAssetClass(unittest.TestCase):
             "Equity", target_weight=0.6, children=[holding1, holding2]
         )
 
-        transaction = asset_class.sell()
+        transaction = asset_class.sell(10000.0)
         self.assertIsNotNone(transaction)
         self.assertEqual(holding1.shares, 9)  # First holding reduced by 1
         self.assertEqual(holding2.shares, 0)  # Second holding unchanged
@@ -154,7 +154,7 @@ class TestAssetClass(unittest.TestCase):
             "Equity", target_weight=0.6, children=[holding1, holding2]
         )
 
-        transaction = asset_class.sell()
+        transaction = asset_class.sell(10000.0)
         self.assertIsNone(transaction)
         self.assertEqual(holding1.shares, 0)  # First holding unchanged
         self.assertEqual(holding2.shares, 0)  # Second holding unchanged
