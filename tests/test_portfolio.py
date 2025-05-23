@@ -15,63 +15,105 @@ class TestPortfolio(unittest.TestCase):
         )
 
     def test_portfolio_with_cash_target(self):
-        holding = Holding("VTI", 10, price=100.0)
-        asset_class = LeafAssetClass("US Equity", target_weight=1.0, children=[holding])
         portfolio = Portfolio(
-            cash_value=1000.0, cash_target=0.2, children=[asset_class]
+            cash_value=1000.0,
+            cash_target=0.2,
+            children=[
+                LeafAssetClass(
+                    "US Equity",
+                    target_weight=1.0,
+                    children=[Holding("VTI", 10, price=100.0)],
+                )
+            ],
         )
 
         self.assertEqual(portfolio.cash_value, 1000.0)
         self.assertEqual(portfolio.cash_target, 0.2)
 
     def test_portfolio_value_sums_children_and_cash(self):
-        holding = Holding("VTI", 10, price=100.0)
-        asset_class = LeafAssetClass("US Equity", target_weight=1.0, children=[holding])
-        portfolio = Portfolio(cash_value=1000.0, children=[asset_class])
+        portfolio = Portfolio(
+            cash_value=1000.0,
+            children=[
+                LeafAssetClass(
+                    "US Equity",
+                    target_weight=1.0,
+                    children=[Holding("VTI", 10, price=100.0)],
+                )
+            ],
+        )
 
         self.assertEqual(portfolio.value, 2000.0)  # 1000 (cash) + 1000 (holdings)
 
     def test_portfolio_rejects_invalid_target_weights(self):
-        holding = Holding("VTI", 10, price=100.0)
-        asset_class = LeafAssetClass("US Equity", target_weight=0.4, children=[holding])
         with self.assertRaises(ValueError) as cm:
-            Portfolio(children=[asset_class])
+            Portfolio(
+                children=[
+                    LeafAssetClass(
+                        "US Equity",
+                        target_weight=0.4,
+                        children=[Holding("VTI", 10, price=100.0)],
+                    )
+                ]
+            )
         self.assertEqual(
             str(cm.exception), "Sum of target weights must be 1.0, got 0.4"
         )
 
     def test_portfolio_with_nested_categories(self):
-        holding1 = Holding("VTI", 10, price=100.0)
-        holding2 = Holding("VXUS", 10, price=100.0)
-        us_equity = LeafAssetClass("US Equity", target_weight=0.4, children=[holding1])
-        intl_equity = LeafAssetClass(
-            "International Equity", target_weight=0.2, children=[holding2]
+        portfolio = Portfolio(
+            cash_value=1000.0,
+            children=[
+                CompositeAssetClass(
+                    "Equity",
+                    [
+                        LeafAssetClass(
+                            "US Equity",
+                            target_weight=0.4,
+                            children=[Holding("VTI", 10, price=100.0)],
+                        ),
+                        LeafAssetClass(
+                            "International Equity",
+                            target_weight=0.2,
+                            children=[Holding("VXUS", 10, price=100.0)],
+                        ),
+                    ],
+                ),
+                LeafAssetClass(
+                    "Fixed Income",
+                    target_weight=0.4,
+                    children=[Holding("BND", 10, price=100.0)],
+                ),
+            ],
         )
-        equity = CompositeAssetClass("Equity", [us_equity, intl_equity])
-
-        holding3 = Holding("BND", 10, price=100.0)
-        fixed_income = LeafAssetClass(
-            "Fixed Income", target_weight=0.4, children=[holding3]
-        )
-
-        portfolio = Portfolio(cash_value=1000.0, children=[equity, fixed_income])
 
         self.assertEqual(portfolio.value, 4000.0)  # 1000 (cash) + 3000 (holdings)
 
     def test_excess_cash_calculation(self):
-        holding = Holding("VTI", 10, price=100.0)
-        asset_class = LeafAssetClass("US Equity", target_weight=1.0, children=[holding])
         portfolio = Portfolio(
-            cash_value=1000.0, cash_target=500.0, children=[asset_class]
+            cash_value=1000.0,
+            cash_target=500.0,
+            children=[
+                LeafAssetClass(
+                    "US Equity",
+                    target_weight=1.0,
+                    children=[Holding("VTI", 10, price=100.0)],
+                )
+            ],
         )
 
         self.assertEqual(portfolio.excess_cash, 500.0)  # 1000 - 500 target
 
     def test_excess_cash_with_no_target(self):
-        holding = Holding("VTI", 10, price=100.0)
-        asset_class = LeafAssetClass("US Equity", target_weight=1.0, children=[holding])
         portfolio = Portfolio(
-            cash_value=1000.0, cash_target=None, children=[asset_class]
+            cash_value=1000.0,
+            cash_target=None,
+            children=[
+                LeafAssetClass(
+                    "US Equity",
+                    target_weight=1.0,
+                    children=[Holding("VTI", 10, price=100.0)],
+                )
+            ],
         )
 
         self.assertEqual(
@@ -79,29 +121,47 @@ class TestPortfolio(unittest.TestCase):
         )  # All cash is excess when no target
 
     def test_excess_cash_below_target(self):
-        holding = Holding("VTI", 10, price=100.0)
-        asset_class = LeafAssetClass("US Equity", target_weight=1.0, children=[holding])
         portfolio = Portfolio(
-            cash_value=300.0, cash_target=500.0, children=[asset_class]
+            cash_value=300.0,
+            cash_target=500.0,
+            children=[
+                LeafAssetClass(
+                    "US Equity",
+                    target_weight=1.0,
+                    children=[Holding("VTI", 10, price=100.0)],
+                )
+            ],
         )
 
         self.assertEqual(portfolio.excess_cash, 0.0)  # No excess when below target
 
     def test_investible_value(self):
-        holding = Holding("VTI", 10, price=100.0)
-        asset_class = LeafAssetClass("US Equity", target_weight=1.0, children=[holding])
         portfolio = Portfolio(
-            cash_value=1000.0, cash_target=500.0, children=[asset_class]
+            cash_value=1000.0,
+            cash_target=500.0,
+            children=[
+                LeafAssetClass(
+                    "US Equity",
+                    target_weight=1.0,
+                    children=[Holding("VTI", 10, price=100.0)],
+                )
+            ],
         )
 
         # investible_value = investments (1000) + excess_cash (500)
         self.assertEqual(portfolio.investible_value, 1500.0)
 
     def test_invest_excess_cash(self):
-        holding = Holding("VTI", 10, price=100.0)
-        asset_class = LeafAssetClass("US Equity", target_weight=1.0, children=[holding])
         portfolio = Portfolio(
-            cash_value=1000.0, cash_target=500.0, children=[asset_class]
+            cash_value=1000.0,
+            cash_target=500.0,
+            children=[
+                LeafAssetClass(
+                    "US Equity",
+                    target_weight=1.0,
+                    children=[Holding("VTI", 10, price=100.0)],
+                )
+            ],
         )
 
         portfolio.invest_excess_cash()
@@ -191,23 +251,26 @@ class TestPortfolio(unittest.TestCase):
 
     def test_sell_overweight_with_no_overweight_assets(self):
         # Create a balanced portfolio
-        holding1 = Holding("VTI", 40, price=100.0)  # 4000 - exactly at target
-        us_equity = LeafAssetClass("US Equity", target_weight=0.4, children=[holding1])
-
-        holding2 = Holding("VXUS", 20, price=100.0)  # 2000 - exactly at target
-        intl_equity = LeafAssetClass(
-            "International Equity", target_weight=0.2, children=[holding2]
-        )
-
-        holding3 = Holding("BND", 40, price=100.0)  # 4000 - exactly at target
-        fixed_income = LeafAssetClass(
-            "Fixed Income", target_weight=0.4, children=[holding3]
-        )
-
         portfolio = Portfolio(
             cash_value=0.0,
             cash_target=0.0,
-            children=[us_equity, intl_equity, fixed_income],
+            children=[
+                LeafAssetClass(
+                    "US Equity",
+                    target_weight=0.4,
+                    children=[Holding("VTI", 40, price=100.0)],
+                ),  # 4000 - exactly at target
+                LeafAssetClass(
+                    "International Equity",
+                    target_weight=0.2,
+                    children=[Holding("VXUS", 20, price=100.0)],
+                ),  # 2000 - exactly at target
+                LeafAssetClass(
+                    "Fixed Income",
+                    target_weight=0.4,
+                    children=[Holding("BND", 40, price=100.0)],
+                ),  # 4000 - exactly at target
+            ],
         )
 
         # Execute sell_overweight
@@ -217,64 +280,63 @@ class TestPortfolio(unittest.TestCase):
         self.assertTrue(transactions.empty)
 
         # Verify portfolio state is unchanged
-        self.assertEqual(holding1.shares, 40)
-        self.assertEqual(holding2.shares, 20)
-        self.assertEqual(holding3.shares, 40)
+        self.assertEqual(portfolio.holding("VTI").shares, 40)
+        self.assertEqual(portfolio.holding("VXUS").shares, 20)
+        self.assertEqual(portfolio.holding("BND").shares, 40)
         self.assertEqual(portfolio.cash_value, 0.0)
 
     def test_rebalance_sells_all_overweight_followed_by_invest(self):
         """Test that sell_overweight sells all overweight assets and then invests the cash."""
-        # Create overweight and underweight assets
+        # Create overweight and underweight assets for assertions
         holding1 = Holding("VTI", 60, price=100.0)  # 6000 - overweight
-        us_equity = LeafAssetClass("US Equity", target_weight=0.4, children=[holding1])
-
         holding2 = Holding("VXUS", 10, price=100.0)  # 1000 - underweight
-        intl_equity = LeafAssetClass(
-            "International Equity", target_weight=0.2, children=[holding2]
-        )
-
         holding3 = Holding("BND", 30, price=100.0)  # 3000 - underweight
-        fixed_income = LeafAssetClass(
-            "Fixed Income", target_weight=0.4, children=[holding3]
-        )
 
         portfolio = Portfolio(
             cash_value=0.0,
             cash_target=0.0,
-            children=[us_equity, intl_equity, fixed_income],
+            children=[
+                LeafAssetClass("US Equity", target_weight=0.4, children=[holding1]),
+                LeafAssetClass(
+                    "International Equity", target_weight=0.2, children=[holding2]
+                ),
+                LeafAssetClass("Fixed Income", target_weight=0.4, children=[holding3]),
+            ],
         )
 
         # First sell overweight assets
-        transactions = portfolio.sell_overweight()
+        sell_overweight_transactions = portfolio.sell_overweight()
 
         # Verify sell transactions occurred (exact count depends on implementation)
-        self.assertFalse(transactions.empty)
+        self.assertFalse(sell_overweight_transactions.empty)
 
         # Verify all transactions are SELL type and for VTI
-        for transaction in transactions:
-            self.assertEqual(transaction.type, BuySell.SELL)
-            self.assertEqual(transaction.ticker, "VTI")
+        self.assertEqual(
+            len(sell_overweight_transactions),
+            len(sell_overweight_transactions.sells().ticker("VTI")),
+        )
 
         # Calculate total cash generated from selling
         self.assertGreater(portfolio.cash_value, 0)
 
-        # Save the number of transactions before investing
-        num_transactions_before_invest = len(transactions)
-
         # Now invest the excess cash from selling
-        transactions = portfolio.invest_excess_cash(transactions)
+        invest_transactions = portfolio.invest_excess_cash()
 
         # Verify buy transactions occurred
-        self.assertGreater(len(transactions), num_transactions_before_invest)
+        self.assertFalse(invest_transactions.empty)
 
         # Verify the new transactions are BUY type
-        for i in range(num_transactions_before_invest, len(transactions)):
-            self.assertEqual(transactions[i].type, BuySell.BUY)
+        self.assertEqual(
+            len(invest_transactions),
+            len(invest_transactions.buys()),
+        )
 
         # Cash should be close to 0 (or exactly 0 if everything could be invested)
-        self.assertLess(portfolio.cash_value, transactions.sells().total_amount)
+        self.assertLess(portfolio.cash_value, sell_overweight_transactions.total_amount)
 
         # Verify either VXUS or BND (or both) increased in shares
+        self.assertGreater(portfolio.holding("VXUS").shares, 10)
+
         self.assertTrue(
             holding2.shares > 10 or holding3.shares > 30,
             "Either VXUS or BND should have increased in shares",
@@ -282,24 +344,21 @@ class TestPortfolio(unittest.TestCase):
 
     def test_divest_sells_until_cash_target(self):
         """Test that divest sells overweight assets until cash target is met."""
-        # Create overweight and underweight assets
+        # Create holdings for assertions
         holding1 = Holding("VTI", 60, price=100.0)  # 6000 - overweight
-        us_equity = LeafAssetClass("US Equity", target_weight=0.4, children=[holding1])
-
         holding2 = Holding("VXUS", 10, price=100.0)  # 1000 - underweight
-        intl_equity = LeafAssetClass(
-            "International Equity", target_weight=0.2, children=[holding2]
-        )
-
         holding3 = Holding("BND", 30, price=100.0)  # 3000 - underweight
-        fixed_income = LeafAssetClass(
-            "Fixed Income", target_weight=0.4, children=[holding3]
-        )
 
         portfolio = Portfolio(
             cash_value=0.0,
             cash_target=200.0,  # Set a cash target
-            children=[us_equity, intl_equity, fixed_income],
+            children=[
+                LeafAssetClass("US Equity", target_weight=0.4, children=[holding1]),
+                LeafAssetClass(
+                    "International Equity", target_weight=0.2, children=[holding2]
+                ),
+                LeafAssetClass("Fixed Income", target_weight=0.4, children=[holding3]),
+            ],
         )
 
         # Portfolio structure:
@@ -329,24 +388,21 @@ class TestPortfolio(unittest.TestCase):
 
     def test_divest_sells_all_overweight_when_cash_target_high(self):
         """Test that divest sells all overweight assets when cash target is higher than total value."""
-        # Create overweight and underweight assets
+        # Create holdings for assertions
         holding1 = Holding("VTI", 60, price=100.0)  # 6000 - overweight
-        us_equity = LeafAssetClass("US Equity", target_weight=0.4, children=[holding1])
-
         holding2 = Holding("VXUS", 10, price=100.0)  # 1000 - underweight
-        intl_equity = LeafAssetClass(
-            "International Equity", target_weight=0.2, children=[holding2]
-        )
-
         holding3 = Holding("BND", 30, price=100.0)  # 3000 - underweight
-        fixed_income = LeafAssetClass(
-            "Fixed Income", target_weight=0.4, children=[holding3]
-        )
 
         portfolio = Portfolio(
             cash_value=0.0,
             cash_target=15000.0,  # Set a cash target higher than total value
-            children=[us_equity, intl_equity, fixed_income],
+            children=[
+                LeafAssetClass("US Equity", target_weight=0.4, children=[holding1]),
+                LeafAssetClass(
+                    "International Equity", target_weight=0.2, children=[holding2]
+                ),
+                LeafAssetClass("Fixed Income", target_weight=0.4, children=[holding3]),
+            ],
         )
 
         # Portfolio structure:
