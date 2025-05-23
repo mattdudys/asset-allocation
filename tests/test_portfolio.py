@@ -287,20 +287,25 @@ class TestPortfolio(unittest.TestCase):
 
     def test_rebalance_sells_all_overweight_followed_by_invest(self):
         """Test that sell_overweight sells all overweight assets and then invests the cash."""
-        # Create overweight and underweight assets for assertions
-        holding1 = Holding("VTI", 60, price=100.0)  # 6000 - overweight
-        holding2 = Holding("VXUS", 10, price=100.0)  # 1000 - underweight
-        holding3 = Holding("BND", 30, price=100.0)  # 3000 - underweight
-
         portfolio = Portfolio(
             cash_value=0.0,
             cash_target=0.0,
             children=[
-                LeafAssetClass("US Equity", target_weight=0.4, children=[holding1]),
                 LeafAssetClass(
-                    "International Equity", target_weight=0.2, children=[holding2]
+                    "US Equity",
+                    target_weight=0.4,
+                    children=[Holding("VTI", 60, price=100.0)],
                 ),
-                LeafAssetClass("Fixed Income", target_weight=0.4, children=[holding3]),
+                LeafAssetClass(
+                    "International Equity",
+                    target_weight=0.2,
+                    children=[Holding("VXUS", 10, price=100.0)],
+                ),
+                LeafAssetClass(
+                    "Fixed Income",
+                    target_weight=0.4,
+                    children=[Holding("BND", 30, price=100.0)],
+                ),
             ],
         )
 
@@ -335,29 +340,33 @@ class TestPortfolio(unittest.TestCase):
         self.assertLess(portfolio.cash_value, sell_overweight_transactions.total_amount)
 
         # Verify either VXUS or BND (or both) increased in shares
-        self.assertGreater(portfolio.holding("VXUS").shares, 10)
-
         self.assertTrue(
-            holding2.shares > 10 or holding3.shares > 30,
+            portfolio.holding("VXUS").shares > 10
+            or portfolio.holding("BND").shares > 30,
             "Either VXUS or BND should have increased in shares",
         )
 
     def test_divest_sells_until_cash_target(self):
         """Test that divest sells overweight assets until cash target is met."""
-        # Create holdings for assertions
-        holding1 = Holding("VTI", 60, price=100.0)  # 6000 - overweight
-        holding2 = Holding("VXUS", 10, price=100.0)  # 1000 - underweight
-        holding3 = Holding("BND", 30, price=100.0)  # 3000 - underweight
-
         portfolio = Portfolio(
             cash_value=0.0,
             cash_target=200.0,  # Set a cash target
             children=[
-                LeafAssetClass("US Equity", target_weight=0.4, children=[holding1]),
                 LeafAssetClass(
-                    "International Equity", target_weight=0.2, children=[holding2]
+                    "US Equity",
+                    target_weight=0.4,
+                    children=[Holding("VTI", 60, price=100.0)],
                 ),
-                LeafAssetClass("Fixed Income", target_weight=0.4, children=[holding3]),
+                LeafAssetClass(
+                    "International Equity",
+                    target_weight=0.2,
+                    children=[Holding("VXUS", 10, price=100.0)],
+                ),
+                LeafAssetClass(
+                    "Fixed Income",
+                    target_weight=0.4,
+                    children=[Holding("BND", 30, price=100.0)],
+                ),
             ],
         )
 
@@ -383,25 +392,30 @@ class TestPortfolio(unittest.TestCase):
         self.assertTrue(transactions.buys().empty)
 
         # Verify shares of underweight assets did not change
-        self.assertEqual(holding2.shares, 10)
-        self.assertEqual(holding3.shares, 30)
+        self.assertEqual(portfolio.holding("VXUS").shares, 10)
+        self.assertEqual(portfolio.holding("BND").shares, 30)
 
     def test_divest_sells_all_overweight_when_cash_target_high(self):
         """Test that divest sells all overweight assets when cash target is higher than total value."""
-        # Create holdings for assertions
-        holding1 = Holding("VTI", 60, price=100.0)  # 6000 - overweight
-        holding2 = Holding("VXUS", 10, price=100.0)  # 1000 - underweight
-        holding3 = Holding("BND", 30, price=100.0)  # 3000 - underweight
-
         portfolio = Portfolio(
             cash_value=0.0,
             cash_target=15000.0,  # Set a cash target higher than total value
             children=[
-                LeafAssetClass("US Equity", target_weight=0.4, children=[holding1]),
                 LeafAssetClass(
-                    "International Equity", target_weight=0.2, children=[holding2]
+                    "US Equity",
+                    target_weight=0.4,
+                    children=[Holding("VTI", 60, price=100.0)],
                 ),
-                LeafAssetClass("Fixed Income", target_weight=0.4, children=[holding3]),
+                LeafAssetClass(
+                    "International Equity",
+                    target_weight=0.2,
+                    children=[Holding("VXUS", 10, price=100.0)],
+                ),
+                LeafAssetClass(
+                    "Fixed Income",
+                    target_weight=0.4,
+                    children=[Holding("BND", 30, price=100.0)],
+                ),
             ],
         )
 
