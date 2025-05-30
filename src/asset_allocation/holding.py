@@ -10,30 +10,47 @@ class Holding:
     ticker: str
     shares: float
     price: float
+    bid: float
+    ask: float
 
-    def __init__(self, ticker: str, shares: float, price: float):
+    def __init__(
+        self,
+        ticker: str,
+        shares: float,
+        price: float,
+        bid: Optional[float] = None,
+        ask: Optional[float] = None,
+    ):
         self.ticker = ticker
         self.shares = shares
         self.price = price
         if price <= 0:
             raise ValueError("price must be positive")
+        self.bid = bid if bid is not None else price
+        if self.bid <= 0:
+            raise ValueError("bid must be positive")
+        self.ask = ask if ask is not None else price
+        if self.ask <= 0:
+            raise ValueError("ask must be positive")
 
     @classmethod
     def from_quote_service(
         cls, ticker: str, shares: float, quote_service: QuoteService
     ) -> "Holding":
-        """Create a holding with a live price from a quote service.
+        """Create a holding with a live prices from a quote service.
 
         Args:
             ticker: the ticker symbol
             shares: the number of shares
-            quote_service: the service to get the current price
+            quote_service: the service to get the current prices
 
         Returns:
-            A new Holding instance with the current price
+            A new Holding instance with the current prices
         """
         price = quote_service.get_price(ticker)
-        return cls(ticker, shares, price)
+        bid = quote_service.get_bid_price(ticker)
+        ask = quote_service.get_ask_price(ticker)
+        return cls(ticker, shares, price=price, bid=bid, ask=ask)
 
     @property
     def name(self):
@@ -51,15 +68,15 @@ class Holding:
         Returns:
             A Transaction if there was enough budget, otherwise None
         """
-        if budget < self.price:
+        if budget < self.ask:
             return None
         self.shares += 1
         return Transaction(
             type=BuySell.BUY,
             ticker=self.ticker,
             shares=1,
-            price=self.price,
-            amount=self.price,
+            price=self.ask,
+            amount=self.ask,
         )
 
     def sell(self) -> Optional[Transaction]:
@@ -76,8 +93,8 @@ class Holding:
             type=BuySell.SELL,
             ticker=self.ticker,
             shares=to_sell,
-            price=self.price,
-            amount=to_sell * self.price,
+            price=self.bid,
+            amount=to_sell * self.bid,
         )
 
     def visit(self, visitor: Visitor) -> Any:

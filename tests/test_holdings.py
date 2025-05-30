@@ -5,14 +5,23 @@ from asset_allocation.transaction import BuySell
 
 
 class TestHolding(unittest.TestCase):
-    def test_holding_creation_sets_basic_properties(self):
+    def test_holding_creation(self):
         holding = Holding("VTI", 10, price=100.0)
         self.assertEqual(holding.name, "VTI")
         self.assertEqual(holding.shares, 10)
         self.assertEqual(holding.price, 100.0)
+        self.assertEqual(holding.bid, 100.0)
+        self.assertEqual(holding.ask, 100.0)
+
+    def test_holding_creation_bid_ask(self):
+        holding = Holding("VTI", 10, price=100.0, bid=99.0, ask=101.0)
+        self.assertEqual(holding.price, 100.0)
+        self.assertEqual(holding.bid, 99.0)
+        self.assertEqual(holding.ask, 101.0)
 
     def test_holding_value_calculation(self):
-        holding = Holding("VTI", 10, price=100.0)
+        """Test that the value calculation uses price, not bid or ask."""
+        holding = Holding("VTI", 10, price=100.0, bid=99.0, ask=101.0)
         self.assertEqual(holding.value, 1000.0)  # 10 shares * $100 per share
 
     def test_holding_rejects_negative_price(self):
@@ -24,12 +33,16 @@ class TestHolding(unittest.TestCase):
             Holding("VTI", 10, price=0.0)
 
     def test_holding_from_quote_service(self):
-        quote_service = FakeQuoteService({"VTI": 100.0})
+        quote_service = FakeQuoteService(
+            {"VTI": 100.0}, bids={"VTI": 99.0}, asks={"VTI": 101.0}
+        )
         holding = Holding.from_quote_service("VTI", 10, quote_service)
         self.assertEqual(holding.name, "VTI")
         self.assertEqual(holding.shares, 10)
         self.assertEqual(holding.price, 100.0)
         self.assertEqual(holding.value, 1000.0)
+        self.assertEqual(holding.bid, 99.0)
+        self.assertEqual(holding.ask, 101.0)
 
     def test_holding_buy_with_sufficient_budget(self):
         holding = Holding("VTI", 10, price=100.0)

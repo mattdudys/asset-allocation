@@ -10,6 +10,7 @@ A Python tool for managing investment portfolio asset allocation. This tool help
 - Rebalance overweight/underweight positions
 - Automatically fetch current market prices via Yahoo Finance
 - Support for nested asset classes (e.g., US Equity, International Bonds)
+- Uses bid/ask prices for more accurate buy/sell operations
 
 ## Installation
 

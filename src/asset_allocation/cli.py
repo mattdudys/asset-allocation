@@ -6,7 +6,7 @@ from typing import Optional
 import pandas as pd
 
 from asset_allocation.portfolio import Portfolio
-from asset_allocation.quote_service import YFinanceQuoteService
+from asset_allocation.quote_service import BatchYFinanceQuoteService
 from asset_allocation.snapshot import PortfolioSnapshot
 from asset_allocation.transaction import Transactions
 from .portfolio_loader import PortfolioLoader
@@ -129,7 +129,7 @@ def main():
 
     args = parser.parse_args()
 
-    loader = PortfolioLoader(YFinanceQuoteService())
+    loader = PortfolioLoader(BatchYFinanceQuoteService())
     portfolio = loader.load(args.config)
 
     if args.command == "invest":
