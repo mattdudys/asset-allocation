@@ -61,28 +61,28 @@ To set up the development environment:
 git clone https://github.com/mattdudys/asset-allocation.git
 cd asset-allocation
 
-# Install in development mode with Poetry
-poetry install
+# Install in development mode with uv
+uv pip install -e .[dev]
 ```
 
 ## Common Commands
 
 ```bash
 # Run tests
-poetry run python -m unittest discover tests
+uv run python -m unittest discover tests
 
 # Run specific test files
-poetry run python -m unittest tests/test_portfolio.py
+uv run python -m unittest tests/test_portfolio.py
 
 # Run specific test cases
-poetry run python -m unittest tests/test_portfolio.py:TestPortfolio.test_portfolio_value_sums_children_and_cash
+uv run python -m unittest tests/test_portfolio.py:TestPortfolio.test_portfolio_value_sums_children_and_cash
 
 # Install in development mode
 pip install -e .
 
 # Run the CLI tool (in development)
-poetry run asset-allocation invest data/portfolio_config.yaml
-poetry run asset-allocation rebalance data/portfolio_config.yaml
+uv run asset-allocation invest data/portfolio_config.yaml
+uv run asset-allocation rebalance data/portfolio_config.yaml
 ```
 
 ## Configuration Format
@@ -119,13 +119,13 @@ asset_classes:               # Asset class hierarchy with target weights
 ## Formatting
 
 ```bash
-# Format files with black
-poetry run black .
+# Format files with ruff
+uv run ruff format .
 ```
 
 ## Development Workflow
 
-- Before committing run black to reformat all files.
+- Before committing run ruff to reformat all files.
 
 ## Unit Testing Guidelines
 

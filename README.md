@@ -20,9 +20,7 @@ git clone https://github.com/mattdudys/asset-allocation.git
 cd asset-allocation
 
 # Install in development mode
-pip install -e .
-# Or with Poetry
-poetry install
+uv pip install -e .[dev]
 ```
 
 ## Usage
@@ -77,13 +75,13 @@ This example represents a classic three-fund portfolio following Bogleheads prin
 
 ```bash
 # Run tests
-poetry run python -m unittest discover tests
+uv run python -m unittest discover tests
 
 # Run specific test files
-poetry run python -m unittest tests/test_portfolio.py
+uv run python -m unittest tests/test_portfolio.py
 
 # Format code
-poetry run black .
+uv run ruff format .
 ```
 
 ## How It Works
