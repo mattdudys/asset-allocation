@@ -1,7 +1,6 @@
 """Command line interface for asset allocation."""
 
 import argparse
-from typing import Optional
 
 import pandas as pd
 
@@ -130,7 +129,7 @@ def main():
     args = parser.parse_args()
 
     loader = PortfolioLoader(BatchYFinanceQuoteService())
-    portfolio = loader.load(args.config)
+    portfolio = loader.load_from_file(args.config)
 
     if args.command == "invest":
         invest_excess_cash(portfolio)

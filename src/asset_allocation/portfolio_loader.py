@@ -12,11 +12,6 @@ class PortfolioLoader:
     def __init__(self, quote_service: QuoteService = None):
         self.quote_service = quote_service or FakeQuoteService({})
 
-    def _load_portfolio_data(self, config_file: str) -> dict:
-        """Load the combined portfolio data from a YAML file."""
-        with open(config_file, "r") as f:
-            return yaml.safe_load(f)
-
     def _tickers_within_asset_classes(self, data: dict) -> set[str]:
         """Extract tickers from the asset class hierarchy without constructing the tree."""
         tickers = set()
@@ -52,14 +47,19 @@ class PortfolioLoader:
 
         return LeafAssetClass(name, target_weight, holding_objects)
 
-    def load(self, config_file: str) -> Portfolio:
-        """Load a portfolio from a single YAML configuration file.
+    def load_from_file(self, config_file: str) -> Portfolio:
+        """Load a portfolio from a single YAML configuration file."""
+        with open(config_file, "r") as f:
+            data = yaml.safe_load(f)
+        return self._load_from_data(data)
 
-        Args:
-            config_file: Path to the YAML file containing portfolio data.
-        """
-        data = self._load_portfolio_data(config_file)
+    def load_from_string(self, yaml_string: str) -> Portfolio:
+        """Load a portfolio from a YAML string."""
+        data = yaml.safe_load(yaml_string)
+        return self._load_from_data(data)
 
+    def _load_from_data(self, data: dict) -> Portfolio:
+        """Load a portfolio from a dictionary."""
         # Extract cash values
         cash_value = data.get("cash_value", 0.0)
         cash_target = data.get("cash_target", 0.0)

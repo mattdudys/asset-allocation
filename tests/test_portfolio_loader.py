@@ -26,8 +26,8 @@ class TestPortfolioLoader(unittest.TestCase):
         )
         self.loader = PortfolioLoader(self.quote_service)
 
-    def test_load_portfolio(self):
-        portfolio = self.loader.load("data/portfolio_config.yaml")
+    def test_load_portfolio_from_file(self):
+        portfolio = self.loader.load_from_file("data/portfolio_config.yaml")
 
         # Test basic portfolio properties
         self.assertEqual(portfolio.cash_value, 2018.49)
@@ -38,6 +38,41 @@ class TestPortfolioLoader(unittest.TestCase):
         self.assertGreaterEqual(
             len(all_holdings), 8
         )  # At least 8 holdings from the config
+
+    def test_load_portfolio_from_string(self):
+        yaml_string = """
+        cash_value: 100.0
+        cash_target: 50.0
+        holdings:
+          VOO: 10
+          BND: 5
+        asset_classes:
+          - name: Equity
+            target_weight: 0.6
+            holdings: [\"VOO\"]
+          - name: Fixed Income
+            target_weight: 0.4
+            holdings: [\"BND\"]
+        """
+        portfolio = self.loader.load_from_string(yaml_string)
+
+        self.assertEqual(portfolio.cash_value, 100.0)
+        self.assertEqual(portfolio.cash_target, 50.0)
+        all_holdings = portfolio.investments.holdings
+        self.assertEqual(len(all_holdings), 2)
+        tickers = sorted([h.ticker for h in all_holdings])
+        self.assertEqual(tickers, ["BND", "VOO"])
+        shares = {h.ticker: h.shares for h in all_holdings}
+        self.assertEqual(shares["VOO"], 10)
+        self.assertEqual(shares["BND"], 5)
+        # Check asset class names and weights
+        asset_classes = portfolio.investments.children
+        self.assertEqual(len(asset_classes), 2)
+        names = sorted([ac.name for ac in asset_classes])
+        self.assertEqual(names, ["Equity", "Fixed Income"])
+        weights = {ac.name: ac.target_weight for ac in asset_classes}
+        self.assertAlmostEqual(weights["Equity"], 0.6)
+        self.assertAlmostEqual(weights["Fixed Income"], 0.4)
 
 
 if __name__ == "__main__":
