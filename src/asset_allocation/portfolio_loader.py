@@ -40,10 +40,9 @@ class PortfolioLoader:
         target_weight = data["target_weight"]
         holding_objects = []
         for ticker in data["holdings"]:
-            if ticker in holdings:
-                shares = holdings[ticker]
-                price = self.quote_service.get_price(ticker)
-                holding_objects.append(Holding(ticker, shares, price))
+            shares = holdings.get(ticker, 0.0)
+            price = self.quote_service.get_price(ticker)
+            holding_objects.append(Holding(ticker, shares, price))
 
         return LeafAssetClass(name, target_weight, holding_objects)
 

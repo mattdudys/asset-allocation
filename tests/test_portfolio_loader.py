@@ -9,6 +9,7 @@ class TestPortfolioLoader(unittest.TestCase):
         self.quote_service = FakeQuoteService(
             {
                 # Tickers directly held in the portfolio
+                "VTI": 100.0,
                 "VOO": 100.0,
                 "VIOV": 100.0,
                 "FNILX": 100.0,
@@ -73,6 +74,26 @@ class TestPortfolioLoader(unittest.TestCase):
         weights = {ac.name: ac.target_weight for ac in asset_classes}
         self.assertAlmostEqual(weights["Equity"], 0.6)
         self.assertAlmostEqual(weights["Fixed Income"], 0.4)
+
+    def test_preferred_ticker_has_zero_shares(self):
+        # VTI is the preferred ticker to buy but we don't have any shares of it.
+        # VTI should be in the portfolio but with zero shares.
+        yaml_string = """
+        cash_value: 100.0
+        cash_target: 50.0
+        holdings:
+          VOO: 10
+        asset_classes:
+          - name: Equity
+            target_weight: 1.0 
+            holdings: [\"VTI\",\"VOO\"]
+        """
+        portfolio = self.loader.load_from_string(yaml_string)
+        all_holdings = portfolio.investments.holdings
+        tickers = sorted([h.ticker for h in all_holdings])
+        self.assertEqual(tickers, ["VOO", "VTI"])
+        shares = {h.ticker: h.shares for h in all_holdings}
+        self.assertEqual(shares, {"VTI": 0, "VOO": 10})
 
 
 if __name__ == "__main__":
