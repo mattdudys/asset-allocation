@@ -9,7 +9,6 @@ class TestPortfolioLoader(unittest.TestCase):
         self.quote_service = FakeQuoteService(
             {
                 # Tickers directly held in the portfolio
-                "VTI": 100.0,
                 "VOO": 100.0,
                 "VIOV": 100.0,
                 "FNILX": 100.0,
@@ -19,6 +18,7 @@ class TestPortfolioLoader(unittest.TestCase):
                 "SUB": 100.0,
                 "VTEB": 100.0,
                 # Additional tickers referenced in asset classes but not directly held
+                "VTI": 100.0,
                 "FISVX": 100.0,
                 "EFV": 100.0,
                 "FNDC": 100.0,
