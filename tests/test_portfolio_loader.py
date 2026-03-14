@@ -85,7 +85,7 @@ class TestPortfolioLoader(unittest.TestCase):
           VOO: 10
         asset_classes:
           - name: Equity
-            target_weight: 1.0 
+            target_weight: 1.0
             holdings: [\"VTI\",\"VOO\"]
         """
         portfolio = self.loader.load_from_string(yaml_string)
@@ -94,6 +94,18 @@ class TestPortfolioLoader(unittest.TestCase):
         self.assertEqual(tickers, ["VOO", "VTI"])
         shares = {h.ticker: h.shares for h in all_holdings}
         self.assertEqual(shares, {"VTI": 0, "VOO": 10})
+
+    def test_load_from_file_cash_override_replaces_file_value(self):
+        portfolio = self.loader.load_from_file(
+            "data/portfolio_config.yaml", cash_override=9999.0
+        )
+        self.assertEqual(portfolio.cash_value, 9999.0)
+
+    def test_load_from_file_cash_override_none_uses_file_value(self):
+        portfolio = self.loader.load_from_file(
+            "data/portfolio_config.yaml", cash_override=None
+        )
+        self.assertEqual(portfolio.cash_value, 2018.49)
 
 
 if __name__ == "__main__":

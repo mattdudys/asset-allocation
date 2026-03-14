@@ -46,10 +46,19 @@ class PortfolioLoader:
 
         return LeafAssetClass(name, target_weight, holding_objects)
 
-    def load_from_file(self, config_file: str) -> Portfolio:
-        """Load a portfolio from a single YAML configuration file."""
+    def load_from_file(
+        self, config_file: str, cash_override: float | None = None
+    ) -> Portfolio:
+        """Load a portfolio from a single YAML configuration file.
+
+        Args:
+            config_file: Path to the YAML configuration file.
+            cash_override: If provided, replaces the cash_value in the file.
+        """
         with open(config_file, "r") as f:
             data = yaml.safe_load(f)
+        if cash_override is not None:
+            data["cash_value"] = cash_override
         return self._load_from_data(data)
 
     def load_from_string(self, yaml_string: str) -> Portfolio:
